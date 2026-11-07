@@ -43,7 +43,7 @@ operand. **use 0**: the ordinary encoding; other values are not measured on
 M2. **tested**: the listed nonzero values were run on a device and gave the same
 result as the zero form, unless the cell states a different outcome; other
 values are open. M1's
-exhaustive ignored-field results ([M1 chapter 5.2](../../nano3g/FMSS_M1/05-instruction-encoding.md#52-operand-map))
+exhaustive ignored-field results (M1 chapter 5.2)
 are not M2 measurements.
 
 | op | mnemonic | R | arg | imm |

@@ -23,18 +23,16 @@ above this physical interface.
 | READ | `bl_NandReadOnly mem:0x6438`; restore `mem:0x08036688` | multi-CE issue/ready/transfer pipeline, sector ECC, metadata and DMA |
 | ERASE | restore `mem:0x08036398` | address the target, confirm erase, poll status and report failure |
 | WRITE | restore `mem:0x080379e8` | DMA data into slots, encode metadata/parity, transfer the page, program confirm/status |
-| BLREAD / BLWRITE | restore manifests in `code/root-restore/fmss_asm/` | ROM-format boot-page programs with a distinct parameter/layout contract |
+| BLREAD / BLWRITE | restore OS boot-page programs | ROM-format boot-page programs with a distinct parameter/layout contract |
 
 The cross-version survey contains 73 program instances and eight distinct
 programs. Two WRITE generations have different result conventions, so an r6
-field cannot be generalized across them. Exact source coordinates and control
-flow are in the program sources `code/bootloader/fmss_asm/*.s` and
-`code/root-restore/fmss_asm/*.s` at the anchors above. Apple's original ERASE and
+field cannot be generalized across them. Apple's original ERASE and
 WRITE programs, unmodified, with their parameter blocks erase and program a
 block and the page reads back exactly, data and metadata (M2-726).
 
 WRITE reads its DMA list pages × chunks + 1 times: one prefetch before the
-transfer loop (`WRITE.s` 0x050) and one read per chunk (0x3f0) before the
+transfer loop (WRITE program offset 0x050) and one read per chunk (0x3f0) before the
 chunk-count test, so the last entry read lies beyond the list and is not used
 for a transfer (source, M2-213).
 

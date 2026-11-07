@@ -76,7 +76,7 @@ parameter RAM `0xd00..0xd7c`. Measured differences from the M1 layout:
 The sequencer has eight 32-bit GPRs at `0xc18..0xc34`; the CPU may preload
 them, and r6 at `0xc30` is the result register, with no separate result
 latch in the tested cases (M2-02). Register numbers above 7 follow the M1
-roles ([M1 chapter 4.3](../../nano3g/FMSS_M1/04-sequencer-memory-map.md#43-register-file-r0r7-the-pc-and-register-numbers-above-7)),
+roles (M1 chapter 4.3),
 except that source 10 in an ALU or MOV register form is the destination itself
 (M2-43..M2-48, M2-52, M2-65, M2-141). The selector matrices (258 destination,
 256 branch, 255 indirect-address, 287 store-source, 256 JR, 256 argument-source

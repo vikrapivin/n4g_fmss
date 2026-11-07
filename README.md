@@ -9,7 +9,7 @@ evidence class and a finding ID.
 
 The documents form a book of numbered chapters with the same chapter numbers,
 section structure, mnemonics and operand notation as the
-[M1 book](../../nano3g/FMSS_M1/README.md) of the nano 3G (S5L8702). Chapter 1
+M1 book of the nano 3G (S5L8702). Chapter 1
 defines the evidence classes, the numbering and the terms
 ([conventions](01-overview.md#12-numbering-names-and-notation)). Chapters 2 to
 12 are the reference chapters that describe the engine. Chapter 13 describes

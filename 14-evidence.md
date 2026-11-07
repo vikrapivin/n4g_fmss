@@ -10,15 +10,13 @@ scope in [chapter 13](13-experiments.md), and outstanding questions in
 
 ## 14.1 Physical capture: p06
 
-Source: `experiments/m2-all-p06.json`, 589,189,971 bytes, SHA-256
+Capture m2-all-p06, 589,189,971 bytes, SHA-256
 `4c804e08dd2e326219266d9eed55f71b489776f51a59b7971202c4920240f8c2`.
 The running image hash was not recorded. The capture contains 159 experiment
 entries, 140 retained sampled records, 22,972 setup/preflight non-executions and
 6,083 explicit errors. These counts describe retained records, not unique
 native submissions: some legacy reports omit setup probes or overwrite labels.
 
-The [machine-readable audit](../../../validation/m2-p06-audit.json) retains
-per-experiment counts, exact JSON pointers and selected raw observations.
 The following table includes every returned entry. A host TIMEOUT is an
 observation-window outcome; it does not identify an illegal opcode. A record
 without sampled execution supplies no instruction or register measurement.
@@ -232,8 +230,7 @@ does not prove every bit's meaning or all possible operand forms.
 
 The p09 revision tests actual ARM probe/worker code, packet-level USB transfers,
 cache visibility, persistent peripheral state and explicit CPU bus-stall
-injection. [Current validation](../../../validation/m2-p09-validation.json)
-records counts and hashes. The native resident sequence completes nine pause
+injection. The native resident sequence completes nine pause
 controls, seven status controls and 531 common-opcode checks. Status-before-ISA
 ordering now works: clearing FMC/NSTAT on reset and deferring completions fixes
 the earlier inherited-state WAIT9 model gap.
@@ -246,9 +243,7 @@ explicitly hypothetical; no regnum result identifies the physical wedging case.
 
 Manifest validation checks requests without executing unknown instructions.
 BCH parity is synthetic and timing is uncalibrated; complete FMSS/VIC routing
-is still open. Historical p06/p07 failure-prefix replay remains in
-[prior validation](../../../validation/m2-p08-validation.json). See the
-[simulator documentation](../../../emCORE_simulators/nano4g/README.md) for commands.
+is still open.
 
 ## 14.5 Physical capture: p07
 
@@ -425,8 +420,8 @@ then reset fails with C08=0; subsequent candidates have no execution.
 
 ## 14.6 Physical capture: p09
 
-The [p09 audit](../../../validation/m2-p09-audit.json) retains all 4,657 sampled
-records across 52 returned families. Source SHA-256:
+Capture m2-all-p09: 4,657 sampled records across 52 returned families,
+SHA-256
 `d4d4215df32a96381c58c6fff8c53f29215762e68d25b83ed278c40900ef4316`.
 There are no retained setup/worker failures. All three faulting status controls
 recover and permit following execution; the first reset failure is phase 4.
@@ -444,7 +439,7 @@ Qualification: [section 16.8](16-device-findings.md#168-p10-m1-register-role-com
 
 ## 14.8 p11: full selector comparisons and source-10 difference
 
-`m2-all-p11.json`: 1,590 sampled records, 1,589 END plus the expected JR r8
+Capture m2-all-p11: 1,590 sampled records, 1,589 END plus the expected JR r8
 self-loop TIMEOUT; of 1,569 scored cases, 1,568 match M1. The one difference,
 `m2_regsrc/argument-source/010`, gives AND/OR=`22002222`, ADD=`44004444`, SUB=0
 (self-source, not M1's r0 rule). LDI/PLD at PC=0x60 return `e1a0f00e`/0.
@@ -475,7 +470,7 @@ Qualification: [section 16.12](16-device-findings.md#1612-p14-no-candidates-exec
 
 ## 14.12 P15: effective reset and independent execution
 
-`experiments/m2-all-p15.json`: seven sampled cases, no errors; four marker
+Capture m2-all-p15: seven sampled cases, no errors; four marker
 assessments match; WAIT3, zero-field illegal1a and evjmp started with C00=1 stay
 in their 2 ms observation TIMEOUTs. STOP leaves C08=b/PC20/IRQ0, abort reports
 3, forced reset before another STOP reports 0, the ordinary reset finishes
@@ -484,7 +479,7 @@ Qualification: [section 16.13](16-device-findings.md#1613-p15-effective-reset-an
 
 ## 14.13 P16: full campaign with effective recovery
 
-Source: `experiments/m2-all-p16.json`, 407,282,777 bytes, SHA-256
+Capture m2-all-p16, 407,282,777 bytes, SHA-256
 `56c8e1c81c4deee4994ed28b0e97412818ea8e802f64085b0f22a191e81e7534`.
 All 172 families use resident batches; 31,001 native records are sampled.
 There are no setup/reset/cleanup/transport failures. Preflight is 1 in 30,978
@@ -500,15 +495,13 @@ reflects the one known M1 source-10 hypothesis mismatch, not incomplete executio
 
 The 531 core and 78 M1 opcode-comparison cases all match. All 157 previously
 deferred event/ECC/DMA cases now execute. The detailed findings are in
-chapters 7–10 and 16, with [the full audit](../../../validation/m2-p16-audit.json)
-and [family summaries](../../../validation/m2-p16-family-summaries.txt).
+chapters 7–10 and 16.
 No image hash or raw journal was supplied; bit 27 is present. The compressed
 copy retains the exact original bytes after decompression (23023680 bytes on disk).
 
 ## 14.14 P16 offline re-analysis
 
-`tools/fmss_p16_offline.py` → `validation/m2-p16-offline.json`
-([analysis](../../103-m2-p16-offline-dma-bch.md)).
+Offline re-analysis of the retained p16 records:
 
 | Record set | Outcome |
 |---|---|
@@ -520,8 +513,8 @@ copy retains the exact original bytes after decompression (23023680 bytes on dis
 
 ## 14.15 P17: DMA acknowledgement and overlap
 
-Source `experiments/m2-dma-p17.json.gz`, 48,343 bytes; 34 cases, all resets
-verified ([analysis](../../105-m2-p17-dma.md), `validation/m2-p17-audit.json`).
+Capture m2-dma-p17, 48,343 bytes; 34 cases, all resets
+verified.
 
 | Family / cases | Outcome |
 |---|---|
@@ -533,8 +526,7 @@ verified ([analysis](../../105-m2-p17-dma.md), `validation/m2-p17-audit.json`).
 
 ## 14.16 P18: timeout, +400 words, BCH8 correction
 
-Source `experiments/m2-dma-p18.json.gz`, 32,635 bytes; 34 cases, no case errors
-([results](../../107-m2-p18-results.md), `validation/m2-p18-analysis.json`).
+Capture m2-dma-p18, 32,635 bytes; 34 cases, no case errors.
 
 | Family | Outcome |
 |---|---|
@@ -544,8 +536,7 @@ Source `experiments/m2-dma-p18.json.gz`, 32,635 bytes; 34 cases, no case errors
 
 ## 14.17 P19: ECC status, BCH16, status during busy
 
-Source `experiments/m2-p19.json.gz`, 47,756 bytes; 19 cases, all END
-([results](../../109-m2-p19-results.md), `validation/m2-p19-analysis.json`).
+Capture m2-p19, 47,756 bytes; 19 cases, all END.
 
 | Family | Outcome |
 |---|---|
@@ -555,8 +546,7 @@ Source `experiments/m2-p19.json.gz`, 47,756 bytes; 19 cases, all END
 
 ## 14.18 P20: result ring and BCH16 correction
 
-Source `experiments/m2-p20.json.gz`, 26,727 bytes; 16 cases, all END
-([results](../../111-m2-p20-results.md), `validation/m2-p20-analysis.json`).
+Capture m2-p20, 26,727 bytes; 16 cases, all END.
 
 | Family | Outcome |
 |---|---|
@@ -565,8 +555,7 @@ Source `experiments/m2-p20.json.gz`, 26,727 bytes; 16 cases, all END
 
 ## 14.19 P21: ECC status bits, WAIT4 release, ECC_CTRL
 
-Source `experiments/m2-p21.json.gz`, 44,789 bytes; 56 cases
-([results](../../113-m2-p21-results.md), `validation/m2-p21-analysis.json`).
+Capture m2-p21, 44,789 bytes; 56 cases.
 
 | Family | Outcome |
 |---|---|
@@ -576,8 +565,7 @@ Source `experiments/m2-p21.json.gz`, 44,789 bytes; 56 cases
 
 ## 14.20 P22: decode WAIT4, BCH16 bit 5, ECC_CTRL, timing, FMC 018/05c
 
-Source `experiments/m2-p22.json.gz`, 152,023 bytes; 89 cases
-([results](../../115-m2-p22-results.md), `validation/m2-p22-analysis.json`).
+Capture m2-p22, 152,023 bytes; 89 cases.
 
 | Family | Outcome |
 |---|---|
@@ -589,8 +577,7 @@ Source `experiments/m2-p22.json.gz`, 152,023 bytes; 89 cases
 
 ## 14.21 P23: jump targets and WAIT vs ready/busy
 
-Source `experiments/m2-p23.json.gz`, 11,281 bytes; 58 cases
-([results](../../117-m2-p23-results.md), `validation/m2-p23-analysis.json`).
+Capture m2-p23, 11,281 bytes; 58 cases.
 
 | Family | Outcome |
 |---|---|
@@ -600,8 +587,7 @@ Source `experiments/m2-p23.json.gz`, 11,281 bytes; 58 cases
 
 ## 14.22 P24: register hazards and JR
 
-Source `experiments/m2-p24.json.gz`, 8,218 bytes; 37 cases, all END
-([results](../../119-m2-p24-results.md)).
+Capture m2-p24, 8,218 bytes; 37 cases, all END.
 
 | Family | Outcome |
 |---|---|
@@ -610,8 +596,8 @@ Source `experiments/m2-p24.json.gz`, 8,218 bytes; 37 cases, all END
 
 ## 14.23 P25 bundle
 
-Source `experiments/m2-p25.json.gz`, 47,361 bytes; 165 cases, all resets
-verified ([p25](../../121-m2-p25-results.md), `validation/m2-p25-analysis.json`).
+Capture m2-p25, 47,361 bytes; 165 cases, all resets
+verified.
 
 | Family | Outcome |
 |---|---|
@@ -625,20 +611,17 @@ verified ([p25](../../121-m2-p25-results.md), `validation/m2-p25-analysis.json`)
 
 ## 14.24 P26 bundle (partial)
 
-Source `experiments/m2-p26.json.gz`, 18,245 bytes. Valid: `m2_timeline` (19),
+Capture m2-p26, 18,245 bytes. Valid: `m2_timeline` (19),
 `m2_wait_cpu` C0C/C10/C48/C54 (36). C60 = 1 by CPU held the engine; 66 later
-cases not executed ([p26](../../123-m2-p26-results.md)).
+cases not executed.
 
 ## 14.25 P43 bundle
 
-Source `experiments/m2-p43.json.gz`, 183,161 bytes, SHA-256
+Capture m2-p43, 183,161 bytes, SHA-256
 `46e9e6fade291332008c5384fb5716ca1cc0fadaef6c874612ed63936ec08f31`; 18 families
-(17 `m2_r5_*`, generator `emCORE/tools/nano4g/round5_experiments.py`, and
-`m2_cpu_stack`, `emCORE/tools/nano4g/cpu_stack_experiments.py`), 0 case errors,
+(17 `m2_r5_*` and `m2_cpu_stack`), 0 case errors,
 every requested reset verified (the eight no-reset cases of
-`m2_r5_prescaler_step` skip the reset by design)
-([p43](../../146-m2-p43-results-cpu-only-nand.md), `validation/m2-p43-round5-analysis.json`,
-`validation/m2-p43-cpu-stack-analysis.json`).
+`m2_r5_prescaler_step` skip the reset by design).
 
 | Family | Outcome |
 |---|---|
@@ -663,12 +646,11 @@ every requested reset verified (the eight no-reset cases of
 
 ## 14.26 Reboot sessions: unmapped bus accesses
 
-Sources `experiments/m2-reboot-ldi.json.gz` (2,466 bytes, SHA-256
+Captures m2-reboot-ldi (2,466 bytes, SHA-256
 `44e95cc6b5738f2ea96f9e386a04fa91fbd502efb36e1400dae756852690e753`) and
-`experiments/m2-reboot-dma.json.gz` (2,615 bytes, SHA-256
+m2-reboot-dma (2,615 bytes, SHA-256
 `f047be85b0cfb10b2049bfbf0018fc9efb3b164386e68c7c6da0eefa89ce2f9e`), each run alone with
-`--single-probes` after a power cycle (generator `emCORE/tools/nano4g/cold_experiments.py`)
-([docs/147](../../147-m2-reboot-sessions.md), `validation/m2-reboot-analysis.json`).
+`--single-probes` after a power cycle.
 
 | Family | Outcome |
 |---|---|
@@ -677,13 +659,9 @@ Sources `experiments/m2-reboot-ldi.json.gz` (2,466 bytes, SHA-256
 
 ## 14.27 P48 bundle (round 6)
 
-Source `experiments/m2-p48.json.gz`, 11,778,983 bytes; the attempt did not finish (USB lost in
+Capture m2-p48, 11,778,983 bytes; the attempt did not finish (USB lost in
 `m2_r6_gate5`). Analysed families: `m2_r6_c08` (15), `m2_r6_read_status` (12), `m2_r6_latch` (12),
-`m2_r6_dma` (30), `m2_r6_vic1` (33), `m2_r6_pc` (36), `m2_r6_apple` (8) (generator
-`emCORE/tools/nano4g/round6_experiments.py`; `validation/m2-p48-round6-analysis.json`,
-`validation/m2-p48-round6-reviewed.json`). The CPU family and four saved gate
-cases are reviewed in `validation/m2-p48-cpu-gate-review.json` and
-[docs/149](../../149-p48-cpu-fifo-and-gate-window-fixes.md).
+`m2_r6_dma` (30), `m2_r6_vic1` (33), `m2_r6_pc` (36), `m2_r6_apple` (8).
 The capture SHA-256 is
 `190c5f1404c0a2b7d9506d54ece388e3c1747f220ac17a30651f84cadf6ccf5e`;
 the device image hash was not recorded.
@@ -720,34 +698,31 @@ Payload SHA-256
 (89,600 bytes) passes 75 regressions and native preflight of all 1,850 CPU
 templates plus 161 gate cases. The CPU logs retain every descriptor/status
 marker, use at most 429 of 512 entries and drop no details. Four compact-map
-controls also pass. Reports: `validation/m2-p48-fixed-validation.json` and
-`validation/m2-p48-fixed-preflight.json`. CPU preflight explicitly uses
+controls also pass. CPU preflight explicitly uses
 `nand-command-reference-v1`, including synthetic parameter/features/alternate-ID
 responses; it does not establish optional Hynix support or physical timing.
 There is no post-fix device capture in this evidence set (M2-730).
 
 ## 14.28 P49 bundle
 
-Source `experiments/m2-p49.json.gz`: `m2_cpu_direct` (1,850 CPU jobs in resident CPU batches,
-0 required-control failures, every reset verified; `validation/m2-p49-cpu_direct-analysis.json`,
-M2-731..M2-741) and `m2_r6_gate5` (five completed cases: baseline and gates0..3;
-the following `BATCH_FREE` remains QUEUED, jobs done/started 62/63; M2-742)
-([docs/149](../../149-m2-p49-cpu-direct.md)).
+Capture m2-p49: `m2_cpu_direct` (1,850 CPU jobs in resident CPU batches,
+0 required-control failures, every reset verified; M2-731..M2-741) and `m2_r6_gate5` (five completed cases: baseline and gates0..3;
+the following `BATCH_FREE` remains QUEUED, jobs done/started 62/63; M2-742).
 
 
 All five gate records contain exact PWRCON restoration and successful reset/cleanup.
 The finite probe TIMEOUT is distinct from the host timeout on FREE. USB status
 polling remains live; gate4 is not submitted. Before/after VIC0 raw is `0x20`,
 VIC1 raw zero; no interrupt sample is taken while clocks are disabled.
-`validation/m2-p49-gate-worker-review.json` retains the evidence. The physical
+The physical
 cause of the dispatch stall is not established. A native fault injection
 (timer IRQ8 masked, non-idle thread current) reproduces queued FREE on the old
 image and completes on the new direct worker dispatch path, which also adds
-live timeout diagnostics (M2-743; [docs/150](../../150-p49-gate-worker-dispatch.md)).
+live timeout diagnostics (M2-743).
 
 ## 14.29 P50: clock-gate scan
 
-Source `experiments/m2-p50.json.gz` (964,738 bytes), SHA256
+Capture m2-p50 (964,738 bytes), SHA-256
 `25570c99ced692b925d0a6b2318e9cd7c6a89ecb9dc7f087a79039224cc5ec11`:
 `m2_r6_gate5`, 110 cases (baseline and gates0..108), all END, worker rc0,
 initial reset and cleanup successful, exact restoration. Of the gate entries,
@@ -762,15 +737,14 @@ hash is absent. The subsequently supplied raw journal verifies all 110 result
 records and confirms the gate109 plan (see the following section). The five shared p49/p50 cases change from
 TIMEOUT to END because the observation floor rises from 3,000 to 160,000 µs;
 p50's loop ends in 13,525–13,548 µs. The queued FREE stall after gate3 does
-not recur. See `validation/m2-p50-gate-review.json`,
-`validation/m2-p50-round6-analysis.json` and [docs/151](../../151-m2-p50-gate-scan.md).
+not recur.
 
-P51 (`experiments/m2-p51.json.gz`, 36,531 bytes, SHA256 `c386c0f055942e1e9af17657c52c211cdcb03705cda16f977d0c978faefb2a4d`, with its raw journal): baseline and gates 0..2 return END with exact restoration; USB is lost submitting the next RUN, whose last journal `batch-plan` names gate 3, a case that completed in p50 (M2-745).
+P51 (capture m2-p51, 36,531 bytes, SHA-256 `c386c0f055942e1e9af17657c52c211cdcb03705cda16f977d0c978faefb2a4d`, with its raw journal): baseline and gates 0..2 return END with exact restoration; USB is lost submitting the next RUN, whose last journal `batch-plan` names gate 3, a case that completed in p50 (M2-745).
 
 
 ## 14.30 P51 and the p50/p51 journals
 
-P51 (`experiments/m2-p51.json.gz` and `.jsonl.gz`) returns four cases:
+P51 (capture m2-p51 and its raw journal) returns four cases:
 baseline and gates0..2, all END with successful reset/cleanup and exact clock
 restoration. It loses USB submitting the next RUN. The journal records the
 gate3 plan and allocation13 DONE; no acceptance or RUNNING status follows
@@ -782,8 +756,8 @@ all raw request/output hashes verify. The five shared manifests are identical,
 including gate3. P50 reports the EXECFIRMWARE entry marker; p51 does not. That
 is the only capability difference. No image hash or CPU cache/MMU state was
 recorded, so the entry-history difference does not establish causality
-(M2-747). `validation/m2-p50-p51-journal-review.json` retains the evidence.
+(M2-747).
 
 The next 53-case family collects a pre-start checkpoint over USB and records
 running-code identity; native packet/cache tests and preflight pass, without
-modelling physical gate effects (M2-748). See [docs/152](../../152-m2-p51-journal-and-gate-checkpoints.md).
+modelling physical gate effects (M2-748).

@@ -347,7 +347,7 @@ item 8).
   `wait`, the timeout still vectors to the handler, but the engine then stays
   with `C00` = `0x407b4`, `C08` = 1, `C60` = `C64` = 1, `C40` = `0x07060000`,
   `CS_IRQ` = 4. STOP and the buffer handshake do not reset it, and the hold
-  survives an emCORE reload. Writing `C60` = 0 releases it (M2-126;
+  survives a reload of the same probe kernel. Writing `C60` = 0 releases it (M2-126;
   [section 8.22](#blocked-states)). Restored to 0 at 2.5 ms, while the `wait`
   is still pending, the run faults at 4.24 ms and the ordinary reset succeeds.
 - **`C68`.** No role found.

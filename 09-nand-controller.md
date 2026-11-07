@@ -9,10 +9,9 @@ the FIFO, the `+0x400` range, the bus timing and the `0x100` block.
 The sequencer itself is described in chapters 2 to 8; the ECC registers at
 `0x800..` are in [chapter 10](10-ecc-engine.md#ecc-engine-and-codeword-layout).
 
-Register names follow M1 ([M1 chapter 9](../../nano3g/FMSS_M1/09-nand-controller.md)).
+Register names follow M1 (M1 chapter 9).
 Meanings come from original-code use (chiefly `bl_NandReadOnly` READ at
-`mem:0x6438` and READID at `mem:0x7550`; program sources
-`code/bootloader/fmss_asm/READ.s`, `READID.s`) and from device measurements cited by ledger ID
+`mem:0x6438` and READID at `mem:0x7550`) and from device measurements cited by ledger ID
 ([chapter 18](18-ledger.md#m2-finding-and-documentation-ledger)).
 
 ## 9.1 Register map
@@ -432,7 +431,7 @@ during data-in `0xc3000` until `0xc3008` at the end (M2-112, M2-203).
 
 ## 9.8 Interrupt
 
-`0x044` routes the controller's flags onto VIC0 line 20, as on M1 ([M1 chapter 9](../../nano3g/FMSS_M1/09-nand-controller.md)):
+`0x044` routes the controller's flags onto VIC0 line 20, as on M1 (M1 chapter 9):
 
 | `0x044` bit | flag |
 |---|---|

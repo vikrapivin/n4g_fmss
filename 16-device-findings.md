@@ -7,7 +7,7 @@ in order from [section 16.5](#165-p07-pause-recovery-and-the-next-failure) (p07)
 [section 16.24](#1624-p43-round-5-and-the-cpu-only-nand-path) (P43). Results of
 the later rounds are in [chapter 18](18-ledger.md).
 
-Audited source: `experiments/m2-all-p06.json`, 589,189,971 bytes,
+Audited capture: m2-all-p06, 589,189,971 bytes,
 SHA-256 `4c804e08dd2e326219266d9eed55f71b489776f51a59b7971202c4920240f8c2`.
 The capture started at `20261101T071245.434221Z`, reports S5L8720, probe v14,
 bulk USB and resident batches. The image hash was **not recorded**. Do not
@@ -78,8 +78,7 @@ explanation of the observed sequence, not an additional silicon measurement.
 
 ## 16.3 Positive architectural observations
 
-Paths below are under `results/<experiment>/data` in p06. Exact JSON pointers
-and selected raw captures are in `validation/m2-p06-audit.json`.
+Paths below are under `results/<experiment>/data` in p06.
 
 | Experiment/case | Observation | Scope |
 |---|---|---|
@@ -119,16 +118,9 @@ and selected raw captures are in `validation/m2-p06-audit.json`.
 * Later register maps, ECC results and READ ID zeros are not hardware values.
   Preserve the earlier successful READ ID capture; p06 does not contradict it.
 
-The audit is reproducible without a device:
-
-```sh
-python3 tools/fmss_capture_audit.py experiments/m2-all-p06.json \
-  --output validation/m2-p06-audit.json
-```
-
 ## 16.5 p07: pause recovery and the next failure
 
-Source: `experiments/m2-all-p07.json`, 641,793,213 bytes, SHA-256
+Capture m2-all-p07, 641,793,213 bytes, SHA-256
 `751e38b88144d160fecb9ba2c1de5b0076e98ba2fcf547c8f4ac334bc5130653`.
 Capture start: `20261101T161039.840011Z`. All 160 entries use native-case records,
 resident batches and bulk USB. The minimum observation window is 160,000 us.
@@ -145,8 +137,7 @@ physical image with a local build merely because their capabilities agree.
 
 All sampled cases except the first `ev5` case return worker rc=0. These counts
 are not successful semantic confirmations: sampled cases include faults and
-observation timeouts. The [audit](../../../validation/m2-p07-audit.json) retains
-recovery diagnostics and exact JSON pointers. The full campaign reaches its end,
+observation timeouts. The full campaign reaches its end,
 but the broad opcode families again have no sampled execution.
 
 ### 16.5.1 `pause` cleanup and CPU resume work in the measured controls
@@ -231,7 +222,7 @@ explicit fault injection. Earlier model matches did not prove that mechanism.
 
 ## 16.7 p09: status recovery, opcode controls and communication loss
 
-Source `experiments/m2-all-p09.json`, SHA-256
+Capture m2-all-p09, SHA-256
 `d4d4215df32a96381c58c6fff8c53f29215762e68d25b83ed278c40900ef4316`;
 image hash not recorded. There are 4,657 sampled records in 52 returned families,
 then `regnum` loses USB communication. No `regnum` output is retained.
@@ -253,24 +244,23 @@ The old `regnum` writes r8=0x5eed0008. If M2 r8 is PC, it fetches outside mapped
 memory. That hypothesis reproduces a worker/USB stall under explicit CPU-bus
 fault injection. Physical attribution remains unknown. The corrected probes use
 local targets; the p10 `m2_wedge` run isolated each request with durable results
-(now selected explicitly with `--isolate-diagnostics`). Full
-provenance, model limits and next command are in [p09 analysis](../../94-m2-p09-wedge-and-model.md).
+(now selected explicitly with `--isolate-diagnostics`).
 
 ## 16.8 p10: M1 register-role comparisons on M2
 
 All 59 `m2_wedge` requests execute and reach END, with IRQ=1, preflight and
 cleanup success, and all 38 scored controls matching. Capture SHA-256:
 `aa918f288abbf3777afb073fadcda131a487544f785ac757ddca0e2d26a21fb5`.
-The file is named `m2-all-p10.json` but contains only that isolation family.
+Capture m2-all-p10 contains only that isolation family.
 No image hash or raw journal was supplied. These are confirmations of selected
 M1 behaviors on M2, not new meanings discovered for r8/r10. See the
-[qualification table](04-sequencer-memory-map.md#43-register-file-r0r7-pc-and-extended-register-roles)
-and [p10 analysis](../../95-m2-p10-register-comparison.md). At the end of p10, remaining role
+[qualification table](04-sequencer-memory-map.md#43-register-file-r0r7-pc-and-extended-register-roles).
+At the end of p10, remaining role
 predictions still needed physical comparison; p11 below supplies that evidence.
 
 ## 16.9 p11: full selector comparisons and source-10 difference
 
-`m2-all-p11.json`: 1,590 sampled records, all worker/preflight/cleanup returns
+Capture m2-all-p11: 1,590 sampled records, all worker/preflight/cleanup returns
 successful; 1,589 END plus the expected JR r8 self-loop TIMEOUT. There is no
 communication loss. Seven whole resident families plus three isolated bus
 controls completed. Of 1,569 scored cases, 1,568 match M1 and one differs.
@@ -284,8 +274,7 @@ contrasts now have M2 measurements. LDI/PLD at PC=0x60 return `e1a0f00e`/0.
 
 The simulator also needed PRAM clearing across reset to match the untouched
 words in successive probes. Its exact placement at CTRL=80000 is inferred,
-not a phase-isolated hardware observation. [P11 analysis](../../96-m2-p11-register-results.md)
-records provenance, limits, native replay and the 64-case next experiment.
+not a phase-isolated hardware observation.
 
 ## 16.10 p12: source 10 and isolated reset phases
 
@@ -302,7 +291,6 @@ STOP clears PC but preserves GPRs/PRAM. STOP then C00=80000 clears GPRs, PRAM,
 C04/C10/C40/C44/C4C. Separate buffer/FMC/ECC reset sequences preserve GPR/PRAM.
 This confirms the reset-before-parameters requirement in the tested states.
 Raw C00/C14 observations are retained without a full bit/timer-model claim.
-[Analysis, replay and next command](../../97-m2-p12-register-reset.md).
 
 ## 16.11 P13: full attempt, state-b reset failure
 
@@ -313,7 +301,6 @@ STOP does not clear it, and the ordinary reset only attempts abort for C08=4.
 All later initial failures share that same state signature. The four proposed
 event/DMA/ECC families never execute. Earlier p11/p12 results remain valid.
 All 531 common opcode and 78 M1 comparison checks before this failure match.
-[Capture hash, native reproduction and reset correction](../../98-m2-p13-reset-failure.md).
 
 ## 16.12 P14: no candidates execute; forced reset was skipped
 
@@ -324,11 +311,10 @@ reproduce all seven failure signatures through the old native ARM binary;
 this does not distinguish which intermediate value hardware returned.
 The corrected kernel always resets while held, captures those intermediate
 values and requires the ordinary reset plus the next preflight to succeed.
-[Audit, qualification and next run](../../99-m2-p14-reset-while-held.md).
 
 ## 16.13 P15: effective reset and independent execution
 
-`experiments/m2-all-p15.json` contains seven sampled cases in one resident
+Capture m2-all-p15 contains seven sampled cases in one resident
 batch, with no errors. All seven pass END-only preflight and both reset
 stages; four marker assessments match. WAIT3, zero-field illegal1a and evjmp
 started with C00=1 remain in their expected 2 ms observation TIMEOUTs.
@@ -339,7 +325,6 @@ reports 0, and the ordinary reset finishes phase 6/rc0. The next marker reaches
 END/IRQ1/r2=72657365. Method 01000318 retains both intermediate statuses.
 This resolves the p13/p14 failure for the tested sequence. It adds no event
 consumption, general opcode-field or physical BCH-parity result.
-[Audit, replay and next combined run](../../100-m2-p15-reset-confirmed.md).
 
 ## 16.14 P16: all families execute; data-path questions remain
 
@@ -358,7 +343,7 @@ All 24 overlap/serial programs end, but none has a fully correct first 512-byte
 output. Same-slot cases uniquely set 048 bit 25. All 20 repeated-encode programs
 end with 13 completion observations; fresh completion is not yet proved. All
 2,080 `miscorr` records report RESULT 1 without valid input parity, so they do
-not establish a BCH correction radius. See [p16 analysis](../../101-m2-p16-full-campaign.md).
+not establish a BCH correction radius.
 
 ## 16.15 P16 offline: serial DMA and BCH8 settled from retained records
 
@@ -366,14 +351,13 @@ Serial DMA is byte exact (`dmaloop` 8/8, `dmactl` 24/24 page reads). The overlap
 payload loss follows from unacknowledged WAIT2 flags in the p16 generator, not
 from the data path (inferred; `m2_dma_ack` tests it). The physical BCH8 code
 equals M1's, with sector 0 covering ten metadata bytes: 352/352 raw sectors
-match. See [p16 offline analysis](../../103-m2-p16-offline-dma-bch.md).
+match.
 
 ## 16.16 P17: acknowledgement confirmed; same-slot overlap corrupts
 
 Acknowledging the WAITs makes the p16 program exact; serial and different-slot
 DMA/ECC overlap is exact for BCH8 and BCH16. Writing a buffer during its own ECC
-operation drops word-aligned bursts and sets FMC_STATUS bit 25. See
-[p17](../../105-m2-p17-dma.md).
+operation drops word-aligned bursts and sets FMC_STATUS bit 25.
 
 ## 16.17 P18: timeout rule, +400 words, BCH8 radius
 
@@ -381,41 +365,42 @@ The start-word timeout is linear in the full count field. The +400 storage
 words read zero without aliasing. BCH8 corrects up to eight bit errors anywhere
 in data, metadata and parity and leaves data unchanged beyond that in the four
 tested cases; ECC_RESULT does not report the current sector with the original
-read sequence. See [p18](../../107-m2-p18-results.md).
+read sequence.
 
 ## 16.18 P19: BCH16, status byte and ECC status interface
 
 BCH16 is the t = 16 narrow-sense code of the same field. The latched status
 byte follows busy/ready; 0x70 is the no-chip echo. Per-sector decode status is
 0x810 bits 3/5 and the 0x818 running total; 0x80c is a read-advanced ring.
-See [p19](../../109-m2-p19-results.md).
 
 ## 16.19 P20: result ring and BCH16 radius
 
 0x80c is an eight-slot ring advanced by its own reads and realigned by 0x81c;
-BCH16 corrects up to 16 errors. See [p20](../../111-m2-p20-results.md).
+BCH16 corrects up to 16 errors.
 
 ## 16.20 P21: ECC status bits and WAIT4
 
 810: bit 1 encode level (WAIT4), bit 2 decode, bit 3 uncorrectable, bit 5 ≥ 7
 corrected, bit 6 erased; ack 1 clears only bit 0. ECC_CTRL bits 15:8 are the
-metadata length. See [p21](../../113-m2-p21-results.md).
+metadata length.
 
 ## 16.21 P22: WAIT4 sources, engine clock
 
 WAIT4 follows 810 bit 1 (encode) or bit 2 (decode). Instruction timing and the
-timeout step agree on a 33.25 MHz engine clock (inferred, M2-103). See [p22](../../115-m2-p22-results.md).
+timeout step agree on a 33.25 MHz engine clock (inferred, M2-103).
 
 ## 16.22 P23: branch targets, JR hazard, no ready/busy WAIT
 
 BNZ targets are byte offsets with the low 3 bits ignored; every JR fell through
 with its target register written by the preceding instruction, later explained
 by the JR condition r[R] ≠ 0, not by a register hazard (M2-108, M2-110); no WAIT
-follows NAND ready/busy (M2-105, M2-107). See [p23](../../117-m2-p23-results.md).
+follows NAND ready/busy (M2-105, M2-107).
 
 ## 16.23 P25: JR, flags, DMA timing, prescaler, parity registers
 
-See [p25](../../121-m2-p25-results.md).
+JR jumps iff r[R] ≠ 0; only WAIT 5 passes, after a status latch; the FMC_STATUS
+and C50 flag bits; DMA timing; the timeout prescaler; the encode parity
+registers (M2-110..M2-116).
 
 ## 16.24 P43: round 5 and the CPU-only NAND path
 
@@ -429,15 +414,14 @@ questions (M2-694..M2-705), FMC_STATUS bits 19:12 by length (M2-706, M2-707) and
 per run (M2-693). The CPU alone reads, programs and erases both page formats
 with hardware or software ECC, equal to the sequencer readers (M2-711..M2-716);
 208 of 211 checks match, 1 is an observation, and the 2 mismatches are the
-location-order expectation (M2-714). See [p43](../../146-m2-p43-results-cpu-only-nand.md).
+location-order expectation (M2-714).
 
 ## 16.25 Reboot sessions: unmapped bus accesses
 
 A DMA from 0x50000000 completes and leaves the device responsive (M2-717); an
 `ldi` from the same address hangs the whole system, also in stall-safe mode, and
 only a power cycle recovers it (M2-718). Both are the opposite of M1, which
-settles M1-F059 (chapter 19 now has no unresolved finding). See
-[docs/147](../../147-m2-reboot-sessions.md).
+settles M1-F059 (chapter 19 now has no unresolved finding).
 
 ## 16.26 P48: round 6
 
@@ -446,20 +430,20 @@ changing while the operation runs (M2-719..M2-722). `wait2` 32 and 33 follow
 the hardware VIC1 lines 0 and 1 (M2-723). The PC is at least 25 bits wide
 (M2-725). Apple's original ERASE and WRITE programs run correctly on the
 device (M2-726). The clock-gate family lost USB after four cases and the
-CPU-direct family was not analysed. See [docs/148](../../148-m2-p48-round6.md).
+CPU-direct family was not analysed.
 
 ## 16.27 P49: CPU-issued command sequences
 
 With the corrected FIFO set-up (M2-730) every required round trip reads back exactly; the qualified
 command variants are listed in M2-731..M2-740, and the fastest qualified
-data cycle is 28.24 ns (M2-731..M2-741). See [docs/149](../../149-m2-p49-cpu-direct.md).
+data cycle is 28.24 ns (M2-731..M2-741).
 
 
 The gate family returns baseline and gates0..3 with successful cleanup, then
 FREE remains queued while USB status polling works (M2-742). Direct worker
 dispatch handles injected timer starvation in the native model, and the host
 now retains scheduler diagnostics on queued timeouts; the physical cause
-remains unresolved (M2-743). See [docs/150](../../150-p49-gate-worker-dispatch.md).
+remains unresolved (M2-743).
 
 ## 16.28 P50: clock gates and VIC0 line 5
 
@@ -469,7 +453,7 @@ VIC0 line5 is high before and after restoration, but no during-pulse samples
 exist, so these results exclude no gate as its source (M2-744). The queued
 FREE stall after gate3 does not recur. USB is lost submitting the next RUN;
 its acceptance and execution are unknown. Gate109 is the intended next case,
-and no gate109..159 result exists (M2-745). See [docs/151](../../151-m2-p50-gate-scan.md).
+and no gate109..159 result exists (M2-745).
 
 
 ## 16.29 P51: gate3 request and entry history
@@ -480,4 +464,4 @@ request; the lost RUN has no observed acceptance or execution (M2-746).
 P50 reports EXECFIRMWARE entry and p51 does not. Image identity and CPU state
 were not captured, so this is an entry-history association, not a cause
 (M2-747). The new checkpoint build records those missing distinctions
-(M2-748; [docs/152](../../152-m2-p51-journal-and-gate-checkpoints.md)).
+(M2-748).

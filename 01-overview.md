@@ -92,7 +92,7 @@ Conventions used throughout:
 | **NAND controller (FMC)** | the SoC's flash memory controller at `0x38a00000`. It produces command, address and data cycles on the NAND bus and contains the data buffers and the DMA ([chapter 9](09-nand-controller.md)). `0x400..0x7fc` reads 0 (M2-155) and holds no second register set: writes are not stored (M2-82), no `FMC_CTRL0` bit enables it (M2-139), and commands and DMAs through it do nothing (M2-183, M2-185) | register names of the SoC family (`FMCTRL0`, `FMCTRL1`, ...) |
 | **FMSS engine** | the whole NAND hardware described here: sequencer, NAND controller and ECC engine (section 1.4) | the original firmware's own name |
 | **sequencer** | the coprocessor inside the NAND controller that runs programs of 8-byte instructions ([chapter 5](05-instruction-encoding.md)) | name used in these documents |
-| **M1 engine** | the engine of the nano 3G (S5L8702), described in the [M1 book](../../nano3g/FMSS_M1/README.md) | name used in these documents |
+| **M1 engine** | the engine of the nano 3G (S5L8702), described in the M1 book | name used in these documents |
 | **M2 engine** | the engine of the nano 4G (S5L8720) described here; the nano 5G firmware carries the same programs | the 4G/5G firmware |
 | **ECC engine** | error-correcting code hardware at offset `0x800` that generates BCH8/BCH16 parity for 512-byte sectors and corrects them ([chapter 10](10-ecc-engine.md)) | name used in these documents |
 | **program** | M2 microcode, not ARM code | name used in these documents |

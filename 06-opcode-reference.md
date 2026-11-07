@@ -653,8 +653,8 @@ defined in [chapter 18](18-ledger.md).
   the access behaves as one through r0 (M2-615). Destination 10 writes the loaded word to all GPRs and not to
   the PC; destination 8 discards it, with no jump (M2-616). The other extended
   destinations are open.
-- Original programs: not used (none of the ten M2 microcode programs in
-  `code/*/fmss_asm/` contains it).
+- Original programs: not used (none of the ten M2 microcode programs
+  contains it).
 - Status: confirmed. These M2 measurements supersede M1's "3G only"
   qualification for this opcode.
 - Evidence: M2-08, M2-48, M2-165, M2-175, M2-615, M2-616.

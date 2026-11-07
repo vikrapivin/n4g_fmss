@@ -47,7 +47,7 @@ them (M2-54, M2-422); no `C00` sequence changes FMC `0x00c..0x05c` or
 `ECC_CTRL`, which the per-case reset zeroes (M2-123, M2-422): `FMCTRL1` bit 31
 zeroes the FMC words and `0x81c` = 1 zeroes `ECC_CTRL` (M2-645). A reset after
 setup therefore destroys the inputs: parameters are written after the reset
-(M2-55). The emCORE adapter resets before writing parameters (M2-50). A start
+(M2-55). The probe adapter resets before writing parameters (M2-50). A start
 keeps the CPU-written GPRs and the CPU-written `C3C`, `C48` and `C54` (M2-154,
 M2-157), and the first start word after the ordinary reset runs the program
 (M2-151).
@@ -90,7 +90,7 @@ running then finishes normally (M2-126).
 ## 12.4 Result layers
 
 r6 is visible at `c30`. A microcode result, an ECC per-sector result, a FIL
-return code and an emCORE worker return are separate layers. Worker
+return code and a probe worker return are separate layers. Worker
 `0xfffffffe` is the probe's bounded setup/start/cleanup failure, not a hardware
 opcode or NAND status; it can accompany a valid preceding sample or an entirely
 unexecuted candidate.

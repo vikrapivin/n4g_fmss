@@ -20,8 +20,7 @@ The original programs use the 512-byte sector with BCH8 and BCH16 only, and no
 `ECC_CTRL` word selects another code (M2-197).
 Source anchors: `bl_NandReadOnly::_m2SetEccMode` at `mem:0x4fcc`, READ at
 `mem:0x6438`, initialization at `mem:0x55d8`; restore WRITE at
-`mem:0x080379e8`; program sources `code/bootloader/fmss_asm/READ.s` and
-`code/root-restore/fmss_asm/WRITE.s`.
+`mem:0x080379e8`.
 
 The engine does not depend on the sequencer: the same register writes issued
 by the CPU, each `WAIT` replaced by a poll of its flag, decode the boot-ROM
@@ -144,7 +143,7 @@ parity-buffer address and byte-order rules are not part of the M2 layout.
 
 ### 10.5.1 BCH8
 
-BCH8 is M1's BCH8 code ([M1 10.3.2](../../nano3g/FMSS_M1/10-ecc-engine.md#1032-how-the-code-works); M2-77):
+BCH8 is M1's BCH8 code (M1 10.3.2; M2-77):
 
 - field GF(2^13), x^13 + x^4 + x^3 + x + 1 (`0x201b`);
 - generator `0x115f914e07b0c138741c5c4fb23`, degree 104, roots alpha^1..alpha^16;
