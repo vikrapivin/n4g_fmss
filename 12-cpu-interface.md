@@ -210,3 +210,24 @@ bit 24 as the drivers do; a sequence that left it set lost earlier DMA buffer
 content (M2-728, M2-730). Reads and programs remain exact down to a data
 cycle of 28.24 ns (timing fields 0/2) on the measured unit, a qualification
 specific to that unit and its operating conditions (M2-741).
+
+
+The monitor comparison interface selects CPU or M2 physical execution below the
+same page/block API. Both paths use hardware BCH; erased-page handling and ECC
+format fallback remain shared. A resident workload cross-reads both writers and
+records API latency excluding USB and verification. Native validation establishes
+the comparison mechanism (M2-749). Device execution then completes 2,328 operations
+with exact data/metadata on all four CEs (M2-750). Read payload rates are 10.7939
+MiB/s for M2 and 8.9343 MiB/s for CPU; page programs measure 2.8030 and 2.5798
+MiB/s respectively. These API rates include setup and cleanup, count 4096-byte
+payloads and exclude USB and verification (M2-751). Erase latency follows first/
+second operation order across alternating backends; its cause is unidentified
+(M2-752).
+
+
+The CPU page reader can omit diagnostics unused by the shared API: controller
+snapshots, sector timestamps and correction-location reads. Required ready/ECC
+decisions, one ring read per sector, bounded pending waits, cache handling and resets remain. A resident baseline/optimized
+comparison includes M2 controls, exclusive phase counters and uninstrumented
+read passes. Native tests establish functionality; a device speed gain is not
+established by those tests (M2-754).

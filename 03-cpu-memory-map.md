@@ -151,12 +151,12 @@ The bit maps of `FMC_STATUS`, `ECC_STATUS` and `ECC_CTRL` are in chapters 9 and
   END (held, paused, looping or faulted without a handler END) it is clear, and
   it is clear while a program runs (M2-182).
 - `sig` raises no VIC0 or VIC1 line beyond the run's baseline (M2-370).
-- `wait2` conditions are VIC0 hardware lines. Line 5 is always asserted, line 8
+- `waitirq` conditions are VIC0 hardware lines. Line 5 is always asserted, line 8
   is the timer interrupt, line 16 is DMAC0 and line 20 is the FMC interrupt
   (M2-142, M2-204); condition 19 passes in the DMA and ECC contexts (M2-167). Conditions 32..255 never pass, VIC1 included (M2-74,
   M2-140, M2-211).
 - A VIC software interrupt is visible in the raw VIC status but releases
-  `wait2` on none of 59 lines (M2-140). Inferred: `wait2` samples the
+  `waitirq` on none of 59 lines (M2-140). Inferred: `waitirq` samples the
   peripheral request lines before the VIC's software OR.
 - No ECC interrupt is found: after encodes and decodes no VIC line rises for
   any tested enable candidate (M2-212, M2-217). The source behind line 5 and
@@ -225,7 +225,7 @@ Measured controls of individual instructions:
 - `pause` (`12`): two forms stop with `CS_IRQ` = 8, `C08` = `a` and PC at the
   instruction; CPU resume continues to the following instruction (M2-14,
   M2-25).
-- `nop` (`08`): with R = 0..7 the following marker and END execute (M2-17,
+- `waitc` (`08`): with R = 0..7 the following marker and END execute (M2-17,
   M2-625); with R = 8..`0xff` it holds at its own offset until the timeout
   fault of an unmet wait, also with a pending flag (M2-377, M2-625).
 - Shifts by 31: SHL of 1 gives `0x80000000`, SHR gives 1 (M2-07); every

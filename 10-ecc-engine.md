@@ -366,7 +366,7 @@ succeeds.
 ## 10.14 Data-path hazard
 
 Serial and different-slot DMA/ECC overlap is byte exact for BCH8 and BCH16
-(M2-80). A DMA on a buffer under its own encode (0, 8 or 32 `nop2` after the
+(M2-80). A DMA on a buffer under its own encode (0, 8 or 32 `nop` after the
 kick) is not interlocked and sets `FMC_STATUS` bit 25 (`0x048` = `0x020c3000`
 against `0x000c3000`):
 
@@ -377,7 +377,7 @@ against `0x000c3000`):
   differ (344..424 of 512 bytes delivered), while the parity is that of the
   buffer data and the buffer is unchanged (M2-401).
 
-After 128 `nop2`, or with the DMA after `WAIT4`, the transfer is exact and bit
+After 128 `nop`, or with the DMA after `WAIT4`, the transfer is exact and bit
 25 stays clear; bit 25 appears only in these same-buffer cases (M2-71, M2-80,
 M2-399, M2-401; the meaning of the flag is inferred). Serial DMA itself is
 exact ([chapter 9, section 9.5](09-nand-controller.md#95-dma)).
@@ -389,7 +389,7 @@ No ECC interrupt is found on M2. After BCH8 encodes and decodes, with `0x044` =
 `0x860..0x9fc` written all ones, single bits of `0x808`, `0x814`, `0x818` and
 `0x844`, `ECC_CTRL` bits 3..7 and 16..31 or `0x810` bits 9..31 written,
 `CS_IRQ` bits 5 and 6 stay clear while `0x810` shows every completion, no VIC
-raw line rises beyond the no-candidate baseline and `wait2 20` and `wait2 43`
+raw line rises beyond the no-candidate baseline and `waitirq 20` and `waitirq 43`
 never pass, while `wait 4` passes (M2-212). VIC1 line 11 (M1 ECC source 43) and every
 other VIC line stay at the baseline after BCH8 encode and decode completions for
 every tested ECC word (`0x800`, `0x808`, `0x814`, `0x860..0x9fc`; values

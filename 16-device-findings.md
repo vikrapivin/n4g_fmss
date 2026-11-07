@@ -406,7 +406,7 @@ registers (M2-110..M2-116).
 
 All 18 families executed with every requested reset verified. Round 5 settles
 the high-bit selector and latch rules (M2-674..M2-681), the boot-ROM view of
-`ldi` (M2-682, M2-683), opcode 0x1a and the `nop` hold (M2-684..M2-686), the
+`ldi` (M2-682, M2-683), opcode 0x1a and the `waitc` hold (M2-684..M2-686), the
 C48 compare and `tmwait` repeatability (M2-687..M2-690), the reset-step origin
 of the timeout phase (M2-691, M2-692), the DMA select, overlap, 038 and 0x340
 questions (M2-694..M2-705), FMC_STATUS bits 19:12 by length (M2-706, M2-707) and
@@ -426,7 +426,7 @@ settles M1-F059 (chapter 19 now has no unresolved finding).
 ## 16.26 P48: round 6
 
 The CPU sampler shows C08, FMC_STATUS bits 19:12 and FMC_DMA_CTRL bits 12:6
-changing while the operation runs (M2-719..M2-722). `wait2` 32 and 33 follow
+changing while the operation runs (M2-719..M2-722). `waitirq` 32 and 33 follow
 the hardware VIC1 lines 0 and 1 (M2-723). The PC is at least 25 bits wide
 (M2-725). Apple's original ERASE and WRITE programs run correctly on the
 device (M2-726). The clock-gate family lost USB after four cases and the
@@ -465,3 +465,27 @@ P50 reports EXECFIRMWARE entry and p51 does not. Image identity and CPU state
 were not captured, so this is an entry-history association, not a cause
 (M2-747). The new checkpoint build records those missing distinctions
 (M2-748).
+
+
+## 16.30 Shared-driver measurement interface
+
+The new resident workload compares CPU and M2 physical execution through the
+same NAND API, with hardware BCH in both modes. It runs resident jobs and
+collects read/write/erase durations together with exact read-back checks.
+Its validation is native-only; no relative hardware speed is inferred (M2-749).
+
+
+## 16.31 P53: exact CPU/M2 cross-reads and measured API speeds
+
+All four CEs pass the resident shared-driver workload: 2,328 operations,
+4,405 required checks and no mismatches (M2-750). M2 reads are 20.8% faster
+and programs 8.65% faster in this workload, including API setup and cleanup
+but excluding USB and checking. The clock field is zero, so it establishes
+no CPU frequency (M2-751). First-versus-second erase order and page-position
+program groups prevent attributing all latency variation to backend choice
+(M2-752).
+
+The later USB loss occurs after 51 gate results, at the gate3 pre-start ACK
+boundary. RUN acceptance and RUNNING are observed, but ACK return, pulse
+completion and restored clocks are not. The reload marker is present; its
+absence alone cannot explain the loss (M2-753).

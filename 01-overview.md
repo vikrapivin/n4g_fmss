@@ -54,9 +54,12 @@ M2 organisation; it does not imply that the section has the same contents as
 the M1 section with the same number.
 
 Established mnemonics are retained for matching operations: `end`, `wr`, `st`,
-`ldi`, `ld`, `movi`, `mov`, `wait`, `nop`, `and`, `or`, `add`, `sub`, `bnz`,
-`sti`, `pause`, `shl`, `shr`, `bz`, `pld` and `pst`. `wait2`, `jr`, `sig`,
-`tmwait`, `evjmp` and `nop2` are the names of their M1 comparison candidates;
+`ldi`, `ld`, `movi`, `mov`, `wait`, `and`, `or`, `add`, `sub`, `bnz`,
+`sti`, `pause`, `shl`, `shr`, `bz`, `pld` and `pst`. `jr`, `sig`, `tmwait`
+and `evjmp` are the names of their M1 comparison candidates. Three opcodes are
+named after their measured M2 behaviour: `08` `waitc`, a wait on a condition
+list (M1 `nop`); `09` `waitirq`, a wait for a CPU interrupt request line (M1
+`wait2`); and `ff` `nop`, the plain no-operation (M1 `nop2`);
 unresolved M2 behaviour is stated separately. A mnemonic is not a claim that
 every operand, timing or side effect is identical across generations.
 
@@ -72,7 +75,7 @@ Conventions used throughout:
 - Instruction fields are `R`, `arg` and `imm`. `rR` names register R, `rA` the
   register selected by arg, `[REG]` a window word and `#imm` an immediate.
   Branch targets and the PC are byte offsets from the program start.
-- A **`wait` event N** and a **`wait2` condition N** belong to separate
+- A **`wait` event N** and a **`waitirq` condition N** belong to separate
   selector spaces; the same N in both names unrelated things.
 - Times are in us and ms; "about" or "≈" marks a measured approximation. Raw
   capture values keep their original notation.
@@ -101,7 +104,7 @@ Conventions used throughout:
 | **CS_IRQ** | the sequencer's flag word at `0xc0c`: bit 0 END, bit 1 `sig` (M2-34, M2-65), bit 2 fault, bit 3 pause, bit 4 routed FMC flag (M2-200) | the original firmware calls it `FC_CS_IRQ`; "CS" is not expanded |
 | **CS_STATUS (`C08`)** | the sequencer's state code at `0xc08` as the CPU reads it (0 idle, 4 waiting, `a` paused, 1, 2 or 9 while a program runs, others in [chapter 2](02-architecture.md#21-how-the-sequencer-is-started-and-stopped)) | name used in these documents |
 | **event** | one of the status flags that `wait` waits for, selected by a number: "`wait` event N" ([chapter 7](07-events-and-waits.md)) | name used in these documents |
-| **condition** | the number N of `wait2`: VIC0 hardware interrupt line N ([chapter 3, section 3.4](03-cpu-memory-map.md#34-cpu-visible-interrupt-lines); M2-140) | name used in these documents |
+| **condition** | the number N of `waitirq`: VIC0 hardware interrupt line N ([chapter 3, section 3.4](03-cpu-memory-map.md#34-cpu-visible-interrupt-lines); M2-140) | name used in these documents |
 | **VIC0, VIC1** | the CPU's two vectored interrupt controllers | SoC register names |
 | **parameter RAM** | 32 words at `0xd00..0xd7c` that the CPU and the program both access; they hold a program's inputs and outputs ([chapter 4, section 4.4](04-sequencer-memory-map.md#44-parameter-ram); M2-03) | name used in these documents |
 | **sector** | the 512-byte ECC and data unit of the original programs | name used in these documents |

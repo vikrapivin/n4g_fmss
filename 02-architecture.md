@@ -95,7 +95,7 @@ flowchart LR
 | 0 | idle (after END, STOP or reset) |
 | 1, 2, 9 | a program running: a delay loop, a loop after `sig`, a program running on after a timeout fault with `C58` = 0 and a fault handler after a vectored fault; the value differs between identical runs (M2-384); 1 also while held by `C60` = 1 (M2-121) |
 | 3 | after abort from state `b` or from a running program (M2-62, M2-422); a running program frozen by start-word bit 1 (M2-158) |
-| 4 | waiting: unmet `wait` or `wait2`, illegal opcode, `tmwait` in progress, a wait held by start word 1 (M2-13, M2-56, M2-384) |
+| 4 | waiting: unmet `wait` or `waitirq`, illegal opcode, `tmwait` in progress, a wait held by start word 1 (M2-13, M2-56, M2-384) |
 | `a` | stopped at `pause`, `CS_IRQ` bit 3 (M2-14) |
 | `b` | blocked zero-field `evjmp` started with `C00` = 1 (M2-57) |
 
@@ -168,7 +168,7 @@ instruction 0 is not END (M2-431).
 - The original programs establish `end`, immediate and register stores, RAM
   load/store, masked load, immediate and register move, AND/OR/ADD/SUB,
   shifts, conditional branches and `wait` (observed, M2-19). The zero-field
-  `nop` (`08`) lets the following instruction and END execute (M2-17); with
+  `waitc` (`08`) lets the following instruction and END execute (M2-17); with
   R = 0..7 it continues and with R = 8..`0xff` it holds until the timeout fault
   like an unmet wait, which no tested pending flag releases (M2-625). The
   bounded opcode scans add no opcode beyond those of chapter 6 (M2-65).
@@ -246,7 +246,7 @@ END run the fault vector (M2-149). The bit details are in
 
 - **Instruction cost:** ALU 30.1 ns, window `ld`/`wr` 60.6 ns, `sti` to SDRAM
   97.8 ns, `ldi` from SDRAM 211 ns; SRAM costs the same as SDRAM (M2-102). Per
-  copy in a loop, `nop2`, `movi`, `mov` and `add` cost 1 cycle, `nop` (`08`)
+  copy in a loop, `nop`, `movi`, `mov` and `add` cost 1 cycle, `waitc` (`08`)
   and a passing `wait 11` 1.25, `ld`, `st`, `wr` and `pld` 61.2 ns, `sti`
   3.25 cycles and `ldi` 199.5 ns (M2-378). A
   two-instruction loop measures 33.8 ns per instruction (M2-09). The engine

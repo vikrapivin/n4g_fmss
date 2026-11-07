@@ -299,16 +299,16 @@ Run `--followups`, or include them via the device runner's `--all`. Each case re
 | `m2_r5_sti_high` | regsweep | `sti` with address selector 0x105, every GPR the address of its own marker, with and without a preceding `mov` |
 | `m2_r5_rom_ldi` | memory,r8 | `ldi` of 0x20000000 + k × 0x1000 (k = 0..15) against the boot-ROM image |
 | `m2_r5_op1a_operands` | unknown,fields0 | Undefined opcode 0x1a with 64 random R/arg/imm words against the zero form |
-| `m2_r5_nop_stall_c08` | opsweep,c08self | `nop` R = 8 / 0xff with the timeout disabled: C08 inside the hold against an unmet `wait 3` |
+| `m2_r5_nop_stall_c08` | opsweep,c08self | `waitc` R = 8 / 0xff with the timeout disabled: C08 inside the hold against an unmet `wait 3` |
 | `m2_r5_c48_count7` | op15 | Count-7 `tmwait` with C48 = 0..8: end instant, C14 and fault |
 | `m2_r5_tmwait_repeat` | op15 | Count-255 `tmwait` with and without a C14 = 0x800 write, five runs each |
 | `m2_r5_prescaler_step` | startbits,restore | Count-0 `wait 3` first fault instant after one CPU reset step versus full reset and none |
-| `m2_r5_c08_long` | c08self | C08 3 ms into a 400 ms loop of `nop2`, `ld` or `sti`, three runs each |
-| `m2_r5_select_tag` | dmactl | FMC_DATA_SEL rewrite 16 / 32 `nop2` into a DMA out with both buffers tagged per word |
+| `m2_r5_c08_long` | c08self | C08 3 ms into a 400 ms loop of `nop`, `ld` or `sti`, three runs each |
+| `m2_r5_select_tag` | dmactl | FMC_DATA_SEL rewrite 16 / 32 `nop` into a DMA out with both buffers tagged per word |
 | `m2_r5_overlap_tags` | dmactl,dmaloop | Out-then-out and in-then-in DMA overlaps (gap 0 / 16) with tagged inputs |
 | `m2_r5_dma_ctrl_sel` | dmactl | DMA out after 038 = 0x1f, 0x2f, 0x37; DMA in after 0xf; control 7 |
 | `m2_r5_out_select` | bufport,dmactl | DMA out with FMC_DATA_SEL = 0, 1, 0x300, 0x400, 0x1100 (control 0x100), four tagged buffers |
-| `m2_r5_x340_window` | bufport,writeseq2 | FMCTRL1 0x340 second transfer: delay alone or an 014 write after 0/8/16 `nop2`, then a page program and raw read |
+| `m2_r5_x340_window` | bufport,writeseq2 | FMCTRL1 0x340 second transfer: delay alone or an 014 write after 0/8/16 `nop`, then a page program and raw read |
 | `m2_r5_status_lengths` | fmcstat | FMC_STATUS bits 19:12 after data reads of 160..508 bytes |
 | `m2_r5_bch16_814` | eccregs,eccstr2 | BCH16 buffer encode and 12-error decode with 0x814 = 0x2f against 0 |
 | `m2_cpu_stack` | — | CPU-only NAND read/program/erase (no sequencer program), hardware and software ECC, boot and main formats, against the sequencer readers |

@@ -31,7 +31,7 @@ a linked contents page and chapter/section bookmarks.
 | 4 | [The register window as the sequencer sees it](04-sequencer-memory-map.md) | window offsets and widths, segments and mirrors, register file and extended register roles, parameter RAM, system memory, program fetch |
 | 5 | [Instruction encoding](05-instruction-encoding.md) | instruction word layout, operand map, opcode summary table, ALU operand rule, byte order |
 | 6 | [Opcode reference](06-opcode-reference.md) | one entry per established or candidate mnemonic, plus unclassified opcode values |
-| 7 | [Events, waits and the timeout](07-events-and-waits.md) | `wait` events, `wait2` conditions, `tmwait` and `evjmp`, `C14`, the timeout length |
+| 7 | [Events, waits and the timeout](07-events-and-waits.md) | `wait` events, `waitirq` conditions, `tmwait` and `evjmp`, `C14`, the timeout length |
 | 8 | [Sequencer control registers](08-sequencer-control-registers.md) | the control block `0xc00..0xc6c` and the start-word bits |
 | 9 | [NAND controller (FMC)](09-nand-controller.md) | `FMC_CTRL0`, the `FMCTRL1` codes, the other registers, `FMC_STATUS`, buffers, DMA, the `+0x400` range, the `0x100` block |
 | 10 | [ECC engine](10-ecc-engine.md) | codeword layout, `ECC_CTRL`, the BCH8 and BCH16 codes, correction, status, result ring and error locations |

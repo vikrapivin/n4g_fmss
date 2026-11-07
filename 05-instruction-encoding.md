@@ -56,8 +56,8 @@ are not M2 measurements.
 | `05` | `movi` | used: destination register | tested: 1, 0xa, 0x1234, 0xd70, 0x8000, 0xffff | used: value |
 | `06` | `mov` | used: destination register | used: source register (a register-form source with any of bits 8..15 set reads the value the last source selector read) | tested: 1, 4, 0x10, 0x100, 0xff, 0x80000000, 0xffffffff |
 | `07` | `wait` | used: event number | event-dependent: `wait 12` status operand | event-dependent: `wait 12` mask |
-| `08` | `nop` | tested: 0..0xff; R = 0..7 continue, R = 8..0xff hold in the wait state (C08 = 4) until the timeout fault | tested: 1, 2, 0xd60, 0x8000, 0xffff | tested: 1, 0xd64, 0x80000000, 0xffffffff |
-| `09` | `wait2` | used: interrupt line number N | tested: 0x40, 1, 0xd60, 0xffff | tested: 0x40, 0xd64, 0xffffffff |
+| `08` | `waitc` | tested: 0..0xff; R = 0..7 continue, R = 8..0xff hold in the wait state (C08 = 4) until the timeout fault | tested: 1, 2, 0xd60, 0x8000, 0xffff | tested: 1, 0xd64, 0x80000000, 0xffffffff |
+| `09` | `waitirq` | used: interrupt line number N | tested: 0x40, 1, 0xd60, 0xffff | tested: 0x40, 0xd64, 0xffffffff |
 | `0a..0d`, `13`, `14` | ALU | used: destination, also first source in the register form | used: source register (a register-form source with any of bits 8..15 set reads the value the last source selector read) | used: immediate; 0 selects the register form |
 | `0e`, `17` | `bnz`, `bz` | used: tested register | tested: 1, 0xff, 0xffff | used: byte target |
 | `0f` | `jr` | used: condition register (jump iff r[R] ≠ 0) | used: register holding the target (a selector with any of bits 8..15 set uses r0) | tested: 1, 0xffffffff |
@@ -67,7 +67,7 @@ are not M2 measurements.
 | `15` | `tmwait` | tested: 1, 0xff (and 24 earlier forms) | tested: 1, 0xffff | tested: 1 .. 0x10000 |
 | `16` | `evjmp` | tested: 1, 2, 3, 4, 7, 0xff | tested: 1, 2, 0xd60, 0xffff | tested: 0xd64, 0xffffffff, a program label (never a jump target) |
 | `18`, `19` | `pld`, `pst` | used: destination / source register | used: register holding the window offset (bits 11:0; a selector with any of bits 8..15 set acts as an access through r0) | tested: 1, 4, 0x10, 0x100, 0xff, 0x80000000, 0xffffffff |
-| `ff` | `nop2` | tested: 3, 7, 0xff | tested: 1, 0xd60, 0xffff | tested: 0xd64, 0xffffffff |
+| `ff` | `nop` | tested: 3, 7, 0xff | tested: 1, 0xd60, 0xffff | tested: 0xd64, 0xffffffff |
 
 The "tested" values of `08`, `10`, `16` and `ff` include the three forms of the
 M1 comparison set (R/arg/imm = 0/0/0, 3/1/0xd64 and 7/0xd60/0xffffffff), all of
@@ -75,11 +75,11 @@ which match the M1 expectation (M2-34, M2-65). The further `08` values are those
 of M2-377 and M2-625, the `10` values those of M2-370, the `15` values those of M2-27 and M2-373, the
 `16` values those of M2-391 and the all-ones `ff` word that of M2-367. The `end`
 values are those of M2-164, the `wr`, `st`, `ldi`, `mov`, `movi`, `bnz`, `bz`,
-`sti`, `pld` and `pst` values those of M2-165 and the `wait2` pairs those of
+`sti`, `pld` and `pst` values those of M2-165 and the `waitirq` pairs those of
 M2-187. The `12` forms are those of
 [chapter 6](06-opcode-reference.md#12-pause).
 
-Two field rules depart from "ignored": `nop` (`08`) with any R = 8..0xff does
+Two field rules depart from "ignored": `waitc` (`08`) with any R = 8..0xff does
 not continue but holds at its own offset in the wait state (C08 = 4) until the
 timeout fault, at the time of an unmet `wait 3`, while R = 0..7 continue (M2-377,
 M2-625, M2-685, M2-686); and a register-form
@@ -88,7 +88,7 @@ source field is decoded with its bits 8..15: with any of them set (0x104, 0x108,
 9 and 11..255 (M2-40) but the value that the last source selector before it
 read: r0 after `movi` (source field 0), the source register after `mov` and
 `add`, the instruction offset after a `mov` with selector 8, kept over a
-`nop2` and over an `ld`, `st` or `wr`, none of which sets it, and 0 when only
+`nop` and over an `ld`, `st` or `wr`, none of which sets it, and 0 when only
 `ld`, `st` or `wr` ran before it since the reset (M2-364, M2-614, M2-618,
 M2-674..M2-677). An address selector of `ldi` and a target selector of
 `jr` with any of bits 8..15 set use r0, as the undecoded selectors do (M2-615,
@@ -101,8 +101,11 @@ M2-679). Field widths of R and arg beyond the tested values are not measured.
 
 ## 5.3 Opcodes
 
-The M1 mnemonics are the reference names. `nop`, `wait2`, `jr`, `sig`, `pause`,
-`tmwait`, `evjmp` and `nop2` are names given in these documents after the
+The M1 mnemonics are the reference names, except `08`, `09` and `ff`: on M2
+`08` is a wait on a condition list, `waitc N` (M1 `nop`); `09` waits for a CPU
+interrupt request line, `waitirq N` (M1 `wait2`); and `ff` is the plain
+no-operation, `nop` (M1 `nop2`). `waitc`, `waitirq`, `jr`, `sig`, `pause`,
+`tmwait`, `evjmp` and `nop` are names given in these documents after the
 measured behaviour; no original M2 program uses them. A name preserves the M1
 comparison; the **status** column states how much of the behaviour is
 established on M2: **confirmed** (original programs and/or device), **tested
@@ -119,8 +122,8 @@ forms** (device-confirmed in the measured forms and states only), **partial**
 | `05` | [`movi rR, #imm`](06-opcode-reference.md#05-movi) | rR = imm | confirmed |
 | `06` | [`mov rR, rA`](06-opcode-reference.md#06-mov) | rR = rA | confirmed |
 | `07` | [`wait N`](06-opcode-reference.md#07-wait) | block until event N is set, else time out and fault | confirmed for the measured events ([chapter 7](07-events-and-waits.md)) |
-| `08` | [`nop`](06-opcode-reference.md#08-nop) | no operation for R = 0..7 (zero form 1.25 cycles, the cost of a passing wait); R = 8..0xff hold as an unmet wait (C08 = 4) to the timeout fault (M2-625, M2-686) | tested forms |
-| `09` | [`wait2 N`](06-opcode-reference.md#09-wait2) | block until interrupt request line N is raised (sampled before the VIC software OR, inferred), else time out and fault | partial: lines 5, 8, 16, 19, 20 pass, 32..255 never; line 5 source and ECC line open |
+| `08` | [`waitc`](06-opcode-reference.md#08-waitc) | wait for condition R: R = 0..7 pass at once (zero form 1.25 cycles, the cost of a passing wait); R = 8..0xff hold as an unmet wait (C08 = 4) to the timeout fault (M2-625, M2-686) | tested forms |
+| `09` | [`waitirq N`](06-opcode-reference.md#09-waitirq) | block until interrupt request line N is raised (sampled before the VIC software OR, inferred), else time out and fault | partial: lines 5, 8, 16, 19, 20 pass, 32..255 never; line 5 source and ECC line open |
 | `0a` | [`and`](06-opcode-reference.md#0a-and) | ALU, section 5.5 | confirmed |
 | `0b` | [`or`](06-opcode-reference.md#0b-or) | ALU | confirmed |
 | `0c` | [`add`](06-opcode-reference.md#0c-add) | ALU, wraps modulo 2^32 | confirmed |
@@ -137,7 +140,7 @@ forms** (device-confirmed in the measured forms and states only), **partial**
 | `17` | [`bz rR, target`](06-opcode-reference.md#17-bz) | if rR = 0: pc = imm | confirmed |
 | `18` | [`pld rR, [rA]`](06-opcode-reference.md#18-pld) | rR = window[rA] | confirmed |
 | `19` | [`pst [rA], rR`](06-opcode-reference.md#19-pst) | window[rA] = rR | confirmed |
-| `ff` | [`nop2`](06-opcode-reference.md#ff-nop2) | no operation; 1 cycle; an all-ones (erased) word executes as `nop2` | tested forms |
+| `ff` | [`nop`](06-opcode-reference.md#ff-nop) | no operation; 1 cycle; an all-ones (erased) word executes as `nop` | tested forms |
 | `1a..fe` | [undefined](06-opcode-reference.md#1afe-and-other-values-without-an-established-meaning) | same outcome as an unmet `wait`: faults at the timeout, no other change; also with a pending flag; the operand fields of `1a` have no effect (M2-282, M2-583, M2-684) | tested forms |
 
 ## 5.4 Unassigned opcodes
@@ -145,8 +148,8 @@ forms** (device-confirmed in the measured forms and states only), **partial**
 Every opcode byte other than the 19 common instructions was run in three operand forms under
 C58 = 0 and C58 = 4, and seven control opcodes were run with command, address,
 DMA, ECC and status stimuli (M2-64, M2-65). The signatures of the control
-opcodes are consistent with the named set: `nop` 08, `jr` 0f, `sig` 10, `pause`
-12, `tmwait` 15, `evjmp` 16 and `nop2` ff. Every value `1a..fe` gives exactly
+opcodes are consistent with the named set: `waitc` 08, `jr` 0f, `sig` 10, `pause`
+12, `tmwait` 15, `evjmp` 16 and `nop` ff. Every value `1a..fe` gives exactly
 the outcome of `1a` and behaves as an unmet `wait`: with the timeout enabled it
 faults at the same time as an unmet `wait 3` (M2-81), with the timeout disabled
 it stays in C08 = 4 without a fault (M2-56), and it changes no register, scratch
@@ -154,7 +157,7 @@ or window word (M2-282). The same holds for every value `1a..fe` with a
 pending command, address, DMA, ECC or status flag (M2-583). No value in
 `1a..fe` acts as an instruction in the tested forms; there is no distinct
 illegal-instruction trap. An erased
-(all-ones) word is `ff` with all-ones fields and executes as `nop2`, also in
+(all-ones) word is `ff` with all-ones fields and executes as `nop`, also in
 runs of 8 and 64 words and with a command, DMA, ECC or status operation pending
 (M2-367). With 64 random R/arg/imm words `1a` gives the zero-form outcome in
 every case: its operand fields have no effect (M2-684).
@@ -219,15 +222,15 @@ The program placement (SDRAM or internal SRAM) does not change the times
 
 | instruction | ns (device) | cycles at 33.25 MHz |
 |---|---:|---:|
-| `movi`, `mov`, `add`, `nop2` (`ff`), an all-ones word, `sig`, untaken `bnz`, `bnz` taken to the next instruction | 30.1 | 1.00 |
-| `nop` (`08`), a passing `wait 11`, a passing `wait 0` | 37.65 | 1.25 |
+| `movi`, `mov`, `add`, `nop` (`ff`), an all-ones word, `sig`, untaken `bnz`, `bnz` taken to the next instruction | 30.1 | 1.00 |
+| `waitc` (`08`), a passing `wait 11`, a passing `wait 0` | 37.65 | 1.25 |
 | `ld` from GPR / PRAM / FMC / ECC, from a `+0x400` word or an unused offset; `wr`, `st` and `pld` of PRAM or FMSS words | 60.6..61.2 | 2.0 |
 | `sti` to SDRAM | 97.8 | 3.25 |
 | `ldi` from SDRAM | 199.5..211 | 6.6..7.0 |
 | `sub` + taken `bnz` | 67.6 | 2.25 |
 
 Sources: M2-102; `sig` M2-370, the all-ones word M2-367, the branch forms and
-linearity M2-378, `wait 11` and `wait 0` M2-387, the `+0x400` and unused-offset `ld` M2-596. The quarter-cycle fractions (`nop` 08,
+linearity M2-378, `wait 11` and `wait 0` M2-387, the `+0x400` and unused-offset `ld` M2-596. The quarter-cycle fractions (`waitc` 08,
 `wait 11`, branch, `sti`) are measured, not explained
 ([chapter 17](17-open-questions.md), item 6). A simple counter loop gives a slope of about 33.8 ns per instruction
 (M2-09).

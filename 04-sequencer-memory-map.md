@@ -119,7 +119,7 @@ set uses neither its low byte nor the r0 fallback of selectors 9 and 11..255
 (M2-364, M2-614): for `mov`, `add`, `or` and `sub` it reads the value
 that the last source selector before it read (r0 after `movi`, the source
 register after `mov` or `add`, the instruction offset after `mov` with
-selector 8), kept over a `nop2` and over an `ld`, `st` or `wr` (none of them
+selector 8), kept over a `nop` and over an `ld`, `st` or `wr` (none of them
 sets it: neither the loaded word, the stored register nor the immediate, M2-674..M2-677),
 and 0 when only `ld`, `st` or `wr` came before it since the reset, as also in
 `and`, `shl` and `shr` (M2-614, M2-618). This value is not the extended-`st` latch

@@ -252,14 +252,14 @@ further DMA is programmed while the previous one runs (M2-78):
 - a DMA started while another runs never completes; reset recovers the
   controller (M2-114).
 
-A DMA superseded by a second DMA programmed 0 or 16 `nop2` after its `FMCTRL1`
+A DMA superseded by a second DMA programmed 0 or 16 `nop` after its `FMCTRL1`
 write (M2-394; `FMC_DNUM` does not change the outcome, as it does not change a
 DMA, M2-189):
 
 | order | outcome |
 |---|---|
 | in, then in | both complete; buffer 1 holds the second input except its first 8..64 bytes, which hold first-input bytes at the same offsets (or 24..32 bytes matching neither input in untagged fills); buffer 0 holds the first input except 0, 8, 12 or 32 leading bytes, which hold first-input bytes 84..95 or 64..95 |
-| out (buffer 0 to address P), then out (buffer 1 to address Q) | the second `wait 2` never passes (it faults at 126.6 ms); buffer-1 bytes appear at their own offsets, first at P for 16..52 bytes, then at Q from that offset (56..120) to byte 511, its earlier bytes at neither address; P holds buffer-0 bytes before that run (8..72 bytes, with 4..16 bytes matching neither in untagged fills), after 16 `nop2` also after it up to offset 196..236, and is untouched beyond |
+| out (buffer 0 to address P), then out (buffer 1 to address Q) | the second `wait 2` never passes (it faults at 126.6 ms); buffer-1 bytes appear at their own offsets, first at P for 16..52 bytes, then at Q from that offset (56..120) to byte 511, its earlier bytes at neither address; P holds buffer-0 bytes before that run (8..72 bytes, with 4..16 bytes matching neither in untagged fills), after 16 `nop` also after it up to offset 196..236, and is untouched beyond |
 
 With both inputs tagged per word, every output word of the four overlaps is a
 word of one of the two inputs, the initial content or zero (M2-697, M2-698;
@@ -278,7 +278,7 @@ from other offsets, among them buffer-1 word 120 at the select switch.
 
 A DMA in flight follows `FMC_DMA_ADDR` and `FMC_DATA_SEL` as they are
 rewritten, at the same offsets: a new address written at once after the
-`FMCTRL1` write takes effect from byte 32 (from byte 256 after 16 `nop2`), a
+`FMCTRL1` write takes effect from byte 32 (from byte 256 after 16 `nop`), a
 new buffer select from byte 8 (232); rewriting `FMC_DNUM` or writing `FMCTRL1`
 `0x100` again changes nothing, and `0x038` = 7 written at once changes bytes
 8..23 of the output and leaves `0x187` at completion. A RAM-to-buffer DMA
@@ -290,7 +290,7 @@ completion, and the byte maps above follow from the rewritten select and
 address (M2-603; that the transfer moves in bursts and reads the registers live
 is inferred). The split points shift with the gap and a preceding BCH8 or BCH16
 encode and differ in some identical runs (M2-394). For a single register
-rewrite g `nop2` after the `FMCTRL1` `0x100` write of a buffer-to-RAM DMA:
+rewrite g `nop` after the `FMCTRL1` `0x100` write of a buffer-to-RAM DMA:
 
 | g | `FMC_DMA_ADDR` rewrite takes effect at byte | `FMC_DATA_SEL` = `0x200` rewrite takes effect at byte |
 |---|---|---|
@@ -306,10 +306,10 @@ The address switch falls on a multiple of 32 bytes and is the same in both
 runs per gap (M2-671); the select switch falls on a word boundary, never later
 than the address switch, and in 7 of 14 runs the word at the switch holds
 `0xd5fa1f44` whatever the offset (M2-672). With both buffers tagged per word
-this word is buffer-1 word 120 (byte offset 480): 16 `nop2` after the start
+this word is buffer-1 word 120 (byte offset 480): 16 `nop` after the start
 the select switch falls at word 63, 57 and 58 in three runs, the word at the
 switch is buffer-1 word 120 in the first two and every later word comes from
-buffer 1 at its own offset; 32 `nop2` after the start the switch falls at word
+buffer 1 at its own offset; 32 `nop` after the start the switch falls at word
 114 in all three runs with no fixed word (M2-694, M2-695, M2-696). That buffer
 reads lead the RAM writes by up to one 32-byte burst is inferred.
 
@@ -320,12 +320,12 @@ with `FMC_DMA_CTRL` 7 or 0 (M2-76, M2-78).
 BCH8 and BCH16 (M2-80). A DMA on the buffer whose own ECC encode is still
 running is not interlocked, in either direction:
 
-| DMA, 0, 8 or 32 `nop2` after the encode kick | buffer and output | parity | evidence |
+| DMA, 0, 8 or 32 `nop` after the encode kick | buffer and output | parity | evidence |
 |---|---|---|---|
 | into the buffer | the DMA completes, but 68..164 old bytes stay in word-aligned runs of 4..32 bytes between runs of new data | matches neither the old nor the new data at gaps 0 and 8, the old data at gap 32 | M2-80, M2-399 |
 | out of the buffer | 344..424 of the 512 bytes delivered: runs of 12..32 bytes about every 96 bytes differ; the buffer is unchanged | that of the buffer data | M2-401 |
 
-Both set `FMC_STATUS` bit 25 (`0x020c3000`). After 128 `nop2`, or with the DMA
+Both set `FMC_STATUS` bit 25 (`0x020c3000`). After 128 `nop`, or with the DMA
 after `WAIT4`, the transfer is exact, the parity is that of the data the
 encode read and bit 25 stays clear; no other case sets bit 25 (M2-71, M2-80,
 M2-399, M2-401). Bit 25 is a buffer-collision flag (meaning inferred).
@@ -382,7 +382,7 @@ operation in that position does not complete: its `wait 1` times out and
 complete after an unreleased latch as after the release; only a command and an
 address operation are refused (M2-641). With a `70h` that is not waited for, a latch
 written straight after it passes, one written one or two instructions later
-(one or two `nop2`, one `nop`, one `movi` or the bit-1 acknowledge) sets bit 3
+(one or two `nop`, one `waitc`, one `movi` or the bit-1 acknowledge) sets bit 3
 instead of bit 23 and its `WAIT5` faults, and one written three or more
 instructions later passes (M2-593). An early
 `FMC_STATUS` read captures `0xc3000`, a later one
@@ -445,9 +445,9 @@ Line 20 follows a routed flag only while it is pending, and of the 32 single
 `0x044` bits only the operation's own bit raises it. `CS_IRQ` bit 4 is set by
 every routed flag raised during the run and stays set after the flag's
 acknowledgement; after an address operation it also reflects the preceding
-`90h` command (M2-200). `wait2 20` follows line 20, not `CS_IRQ` bit 4
+`90h` command (M2-200). `waitirq 20` follows line 20, not `CS_IRQ` bit 4
 (M2-204). With `0x044` = `0xffffffff`, VIC0 raw bit 20 is raised after a DMA, a
-command and a status latch, and `wait2 20` passes 4–7 us after the same
+command and a status latch, and `waitirq 20` passes 4–7 us after the same
 operations; with `0x044` = 0 line 20 is never raised (M2-142). An END, also a
 fault-handler END, with an enabled flag still pending leaves USB working under
 the probe's cleanup (M2-208). ECC operations raise no line (M2-212,
@@ -458,7 +458,7 @@ flowchart LR
   F[FMC_STATUS flags] --> E[0x044 bits 0, 1, 2, 11, 12]
   E -->|pending routed flag| V[VIC0 line 20]
   E -->|any routed flag in the run| I[CS_IRQ bit 4, sticky]
-  V --> W[wait2 20]
+  V --> W[waitirq 20]
 ```
 
 ## 9.9 FIFO and READ ID
@@ -486,7 +486,7 @@ S + `0x220`.. and S + `0x240`.. and the DMA's own target is not written. With
 (M2-617). The second transfer runs to its end with no further write: after
 2000 delay loops all 128 words of a page programmed from buffer 0 are RAM
 S + `0x200` + 4k (M2-703, M2-704). An `FMC_DATA_SEL` write stops it where it
-is: written 0, 8 or 16 `nop2` after the acknowledge it leaves 0, 16 or 32 RAM
+is: written 0, 8 or 16 `nop` after the acknowledge it leaves 0, 16 or 32 RAM
 words in buffer 0 and the earlier content in the rest, with nothing moved in
 the 2000 delay loops after it (M2-703, M2-705); the data-out set-up's
 `FMC_DATA_SEL` write is such a write. No DMA out of data buffer 0 after `0x340` returns the

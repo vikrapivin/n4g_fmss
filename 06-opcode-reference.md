@@ -15,8 +15,10 @@ defined in [chapter 18](18-ledger.md).
   register selected by `arg`. `[REG]` is a register-window byte offset; `[rA]`
   uses the address held in rA. `ldi`/`sti` access system memory, `pld`/`pst` the
   register window.
-- `nop`, `wait2`, `jr`, `sig`, `pause`, `tmwait`, `evjmp` and `nop2` are
-  documentation mnemonics retained from M1, not names recovered from Apple code;
+- `waitc`, `waitirq`, `jr`, `sig`, `pause`, `tmwait`, `evjmp` and `nop` are
+  documentation mnemonics, not names recovered from Apple code; all but `waitc`
+  (`08`, M1 `nop`), `waitirq` (`09`, M1 `wait2`) and `nop` (`ff`, M1 `nop2`)
+  are retained from M1;
   no original M2 program uses these opcodes. A name does not import M1's ignored
   operands, event routing, timing or control-register side effects.
 - **Original** means use in the original M2 programs
@@ -80,7 +82,7 @@ defined in [chapter 18](18-ledger.md).
 - Register numbers: with R = 8..255, `st` stores the register-bus latch, the last
   value that passed through the register file. `movi`, `mov`, `add`, `ld`, `pld`
   and `ldi` leave the value they wrote; `st` leaves the value it read; `wr` and
-  `nop` leave r0; `wait 11` keeps the previous value. Measured for every extended
+  `waitc` leave r0; `wait 11` keeps the previous value. Measured for every extended
   selector after a seeded r7, with 13 predecessor contrasts at selectors 9, 14
   and 200; no constant-zero extended source is inferred (M2-41, M2-47). A
   broadcast `mov r10, r3` does not update the latch: the following extended
@@ -173,7 +175,7 @@ defined in [chapter 18](18-ledger.md).
   low-byte register nor r0 but the value the last source selector before it
   read: r0 after `movi`, r5 after `mov` from r5, the old r3 after
   `add r3,r3,#1`, the instruction offset after a `mov` with source 8, kept over
-  a `nop2` and over an `ld`, `st` or `wr` (none of them sets it), and 0 when
+  a `nop` and over an `ld`, `st` or `wr` (none of them sets it), and 0 when
   only `ld`, `st` or `wr` ran before it since the reset (M2-364, M2-614,
   M2-618, M2-674..M2-677).
 - Operation: rR = rA. A source written by the preceding instruction is used at
@@ -239,7 +241,7 @@ defined in [chapter 18](18-ledger.md).
     it (an acknowledge, or one `movi r5,#0` filler) faults; 20 or 200 filler
     instructions before the latch pass (M2-68, M2-178); the two faulting
     orderings fault straight after a reset and after any of eight different
-    preceding programs (M2-390). Measured in `nop2` units, a latch 0 or 3..20
+    preceding programs (M2-390). Measured in `nop` units, a latch 0 or 3..20
     instructions after the unwaited `70h` passes and one 1 or 2 instructions
     after it faults: it sets FMC_STATUS bit 3 instead of bit 23 (M2-593). After
     a passed latch and only the acknowledge of bit 23, a second latch without
@@ -248,7 +250,7 @@ defined in [chapter 18](18-ledger.md).
   - 11: passes at once in every tested state (idle with C58 = 0 or 4, timeout
     disabled, DMA or encode running, command or status latch pending, every
     flag acknowledged, C10 = 0, `0x044` all ones, the chip busy in a page read,
-    a reset or a block erase) and costs 37.7 ns, 1.25 cycles, as `nop` (`08`)
+    a reset or a block erase) and costs 37.7 ns, 1.25 cycles, as `waitc` (`08`)
     and a passing `wait 0` (M2-10, M2-69, M2-107, M2-387).
   - 12: passes iff status AND arg AND mask ≠ 0 (M2-134); against a busy chip it
     releases only when the chip signals ready (M2-130, M2-137); it passes
@@ -274,11 +276,11 @@ defined in [chapter 18](18-ledger.md).
   M2-193, M2-206, M2-216, M2-386, M2-387, M2-390, M2-433, M2-494, M2-584,
   M2-588, M2-593.
 
-### `08` `nop`
+### `08` `waitc`
 
-- No operation.
-- Syntax: `nop`.
-- Encoding: the zero form R = arg = imm = 0; R = 1..7, arg = 1, 2, 0xd60,
+- Wait for condition R of a list in which R = 0..7 hold at once.
+- Syntax: `waitc N`; `waitc` alone is the zero form `waitc 0`.
+- Encoding: R = condition N; the zero form R = arg = imm = 0; R = 1..7, arg = 1, 2, 0xd60,
   0x8000, 0xffff and imm = 1, 0xd64, 0x80000000, 0xffffffff continue as the zero
   form (for R = 1, 3, 7 and the arg/imm values the GPRs and the whole window
   equal those of the zero form). Every R = 8..0xff (also with arg 0xffff and imm
@@ -288,11 +290,12 @@ defined in [chapter 18](18-ledger.md).
   status flag for R = 8..15 (M2-377, M2-625). With the timeout disabled
   (start word 1) R = 8 and 0xff hold with C08 = 4, the value of an unmet
   `wait 3`: the hold is a wait state (M2-685, M2-686).
-- Operation: execution continues with the following instruction. As a
-  predecessor of an extended `st`, it leaves r0 in the register-bus latch
-  (M2-47).
+- Operation: for N = 0..7 the condition holds and execution continues with the
+  following instruction; for N = 8..0xff it is not met and the engine waits as
+  for an unmet `wait`. As a predecessor of an extended `st`, the zero form leaves
+  r0 in the register-bus latch (M2-47).
 - Timing: 37.65 ns, 1.25 cycles (M2-102, M2-378), the cost of a passing wait.
-- C14: a loop of `nop` with start word `0xffb5` leaves C14 = 0xff (start-word
+- C14: a loop of `waitc` with start word `0xffb5` leaves C14 = 0xff (start-word
   bits 15:8), as a passing `wait 11` does (M2-625). `08` acts as a wait whose
   condition holds for R < 8 and that no tested stimulus satisfies for R ≥ 8
   (M2-625, M2-686).
@@ -303,24 +306,24 @@ defined in [chapter 18](18-ledger.md).
   ([chapter 17](17-open-questions.md), item 4).
 - Evidence: M2-17, M2-34, M2-65, M2-102, M2-377, M2-378, M2-625, M2-685, M2-686.
 
-### `09` `wait2`
+### `09` `waitirq`
 
 - Block until an interrupt request line of the CPU is raised.
-- Syntax: `wait2 N`.
+- Syntax: `waitirq N`.
 - Encoding: R = line number N; arg and imm are ignored: (0, 0), (0x40, 0x40),
   (0, 0x40), (1, 0xd64), (0xd60, 0xffffffff) and (0xffff, 0) give the same
   outcome (M2-187).
-- Operation: `wait2 N` continues once interrupt request line N is raised; N
+- Operation: `waitirq N` continues once interrupt request line N is raised; N
   numbers VIC0 lines as on M1 (M1-F174). Otherwise it waits for the timeout and
   faults like an unmet `wait`. A VIC software interrupt (SOFTINT) is visible in the
-  raw VIC status but releases none of 59 lines; inferred: `wait2` samples the
+  raw VIC status but releases none of 59 lines; inferred: `waitirq` samples the
   peripheral request lines before the VIC's software OR (M2-140).
 - Lines seen to release it:
   - 5: always (M2-74, M2-140).
   - 8: when the timer interrupt fires (M2-140).
   - 16: DMAC0 activity (M2-140, M2-144).
   - 19: the USB interrupt; passes depending on USB traffic (M2-74, M2-144).
-  - 20: the NAND controller interrupt. `wait2 20` follows VIC0 line 20, which
+  - 20: the NAND controller interrupt. `waitirq 20` follows VIC0 line 20, which
     is raised while a flag routed by FMC `0x044` (bits 0, 1, 2, 11, 12) is
     pending, not the sticky CS_IRQ bit 4; with `0x044` all ones it passes
     4–7 us after a DMA, a command or a status latch, with `0x044` = 0 never
@@ -693,7 +696,7 @@ defined in [chapter 18](18-ledger.md).
   `1a..fe` behaves the same: the next instruction is not reached and the
   timeout fault comes at the time of an unmet `wait 3` (M2-583).
 - All 228 values `1b..fe` give exactly the outcome of `1a` in every scanned
-  state, operand form and C58 setting; only `ff` (`nop2`) differs. No value in
+  state, operand form and C58 setting; only `ff` (`nop`) differs. No value in
   `1a..fe` acts as a hidden instruction in the tested forms, and none is
   distinguishable from an unmet `wait`: there is no distinct
   illegal-instruction trap (M2-282). M1 undefined opcodes behave the same (M1-F052), with
@@ -704,13 +707,13 @@ defined in [chapter 18](18-ledger.md).
 - Status: tested forms.
 - Evidence: M2-11, M2-56, M2-64, M2-65, M2-81, M2-282, M2-583, M2-684.
 
-### `ff` `nop2`
+### `ff` `nop`
 
-- No operation (second encoding).
-- Syntax: `nop2`.
+- No operation.
+- Syntax: `nop`.
 - Encoding: R = arg = imm = 0; R/arg/imm = 3/1/0xd64 and 7/0xd60/0xffffffff give
   the same result. An all-ones (erased) word, op 0xff with R 0xff, arg 0xffff
-  and imm 0xffffffff, executes as `nop2`: runs of 1, 8 and 64 such words
+  and imm 0xffffffff, executes as `nop`: runs of 1, 8 and 64 such words
   continue to the END, as does one word with a command, address, DMA, ECC
   operation or status latch pending (M2-367).
 - Operation: execution continues with the following instruction.
@@ -726,7 +729,7 @@ defined in [chapter 18](18-ledger.md).
 | Matrix | Cases | Content |
 |---|---:|---|
 | confirmation | 531 | the 19 common instructions: explicit results, all eight MOV destinations, source/destination aliasing, immediate-zero forms, wrap and shift edges, taken and untaken branches, RAM and window effects, idle and pending/cleared waits |
-| M1 comparison | 78 | M1 hypotheses for `nop`, `nop2`, `wait2`, `jr`, `sig`, `pause`, `tmwait`, `evjmp` |
+| M1 comparison | 78 | M1 hypotheses for `waitc` (M1 `nop`), `nop` (M1 `nop2`), `waitirq` (M1 `wait2`), `jr`, `sig`, `pause`, `tmwait`, `evjmp` |
 | opcode scan | 1,422 | every other opcode byte in three operand forms under C58 = 0 and C58 = 4 |
 | control-opcode states | 105 | seven control opcodes with command, address, DMA, ECC and status stimuli, three operand forms each |
 

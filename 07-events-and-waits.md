@@ -3,16 +3,16 @@
 <a id="events-waits-and-timeout-interpretation"></a>
 
 Summary: the hardware flags that `wait` (`07`) waits for, the interrupt request
-lines that `wait2` (`09`) waits for, the status latch behind `wait` events 5 and
+lines that `waitirq` (`09`) waits for, the status latch behind `wait` events 5 and
 12, the acknowledge rules, the timeout and its length, and the other event-like
 opcodes. Finding IDs (M2-nn) refer to [chapter 18](18-ledger.md); M1-Fnnn are the
 M1 findings listed there.
 
-**Two separate number lists.** As on M1, `wait` and `wait2` both take a number N
+**Two separate number lists.** As on M1, `wait` and `waitirq` both take a number N
 in their R field, but the numbers name different things. "`wait` event N" is an
-entry of the event table in [section 7.2](#wait-events); "`wait2` condition N"
+entry of the event table in [section 7.2](#wait-events); "`waitirq` condition N"
 is an interrupt request line ([section 7.7](#wait2-lines)).
-`wait2` condition 5 has nothing to do with `wait` event 5.
+`waitirq` condition 5 has nothing to do with `wait` event 5.
 
 ## 7.1 The `wait` instruction
 
@@ -40,7 +40,7 @@ arg = mask = 0x40 (also 0x20 for enhanced status) qualifies the NAND status.
 
 With nothing pending, `wait 11` reaches END in about 4 us and the other fifteen
 events 0..15 fault after about 126.6 ms under the tested control state (M2-10).
-A passing `wait 11` costs 37.4..37.7 ns (1.25 cycles at 33.25 MHz), as `nop`
+A passing `wait 11` costs 37.4..37.7 ns (1.25 cycles at 33.25 MHz), as `waitc`
 (`08`) and as a passing `wait 0` whose flag is pending (M2-387).
 `CS_IRQ` then reads 5 once the fault handler reaches END: bit 2 (fault) and
 bit 0 (END) are separate flags. A bare `wait 12` with zero operands and no
@@ -169,13 +169,13 @@ A latch never sets `FMC_STATUS` bit 24 (0 of 2743 latch records, with `0x044` =
   18 of 18 runs, straight after the per-case reset and after each of eight
   different preceding programs, with `FMC_STATUS` reading `0xc300a` /
   `0xc3000` (bit 23 clear) before the `wait 5`: the fault depends on the
-  ordering, not on an earlier program (M2-390). Measured in `nop2` steps, a
+  ordering, not on an earlier program (M2-390). Measured in `nop` steps, a
   latch written straight after the `70h` (no instruction between) passes with
   `FMC_STATUS` bits 1, 3 and 23 set and status `0x70`, one written after one
-  or two `nop2` (30..60 ns), one `nop`, one `movi` or the acknowledge faults:
+  or two `nop` (30..60 ns), one `waitc`, one `movi` or the acknowledge faults:
   bit 23 never rises in 24 samples of 188 ns and bit 3 is set (`0xc300a`)
-  before the `wait 5`; with 3 to 20 `nop2`, or the acknowledge followed by 20
-  `nop2`, it passes with status `0xe0` (M2-593). Why that window sets bit 3
+  before the `wait 5`; with 3 to 20 `nop`, or the acknowledge followed by 20
+  `nop`, it passes with status `0xe0` (M2-593). Why that window sets bit 3
   instead of bit 23 is unknown ([chapter 17](17-open-questions.md), item 11).
 - **During a block erase,** `wait 5` after one latch passes when the chip
   becomes ready, at the erase end (about 2.27 ms), with `04c` = `0xe0`; while
@@ -183,7 +183,7 @@ A latch never sets `FMC_STATUS` bit 24 (0 of 2743 latch records, with `0x044` =
   M2-198).
 - On an idle chip, with the `70h` waited for (`wait 0`) and acknowledged before
   the latch, `wait 5` passes for a single latch, two latches, the acknowledge
-  just before the latch and a `nop` just before the latch; a latch without any
+  just before the latch and a `waitc` just before the latch; a latch without any
   `70h` command also passes (M2-130). Without a chip enable the latch returns the command
   echo `0x70` (M2-87).
 - **Next command after a latch.** After a status latch a new command is
@@ -259,14 +259,14 @@ set (M2-87).
 
 <a id="wait2-lines"></a>
 
-## 7.7 `wait2` and the interrupt request lines
+## 7.7 `waitirq` and the interrupt request lines
 
-`wait2 N` (`09`, R = N) waits until interrupt request line N is asserted, or
+`waitirq N` (`09`, R = N) waits until interrupt request line N is asserted, or
 faults at the timeout. N is a VIC0 line number, as on M1 (M1-F174; M2-140,
 M2-142). The arg and imm fields are ignored: (0, 0), (0x40, 0x40), (0, 0x40),
 (1, 0xd64), (0xd60, 0xffffffff) and (0xffff, 0) give the same outcome (M2-187).
 
-| `wait2` condition N | line | when it passes |
+| `waitirq` condition N | line | when it passes |
 |---|---|---|
 | 5 | VIC0 line 5 | in every state tried; permanently asserted, source unidentified; high before and after restored pulses across gates0..108; no during-pulse samples, so their involvement is not excluded (M2-744) |
 | 8 | VIC0 line 8, timer | when the CPU-enabled timer interrupt fires, also while the chip is busy (M2-140, M2-167) |
@@ -295,24 +295,24 @@ establish a clock identity or make entry history the cause (M2-746, M2-747).
   address, transfer, DMA and status-latch flags onto VIC0 line 20. The line
   follows a routed flag only while it is pending, and of the 32 single
   `0x044` bits only the operation's own bit raises it (M2-200). With the
-  command flag pending, `wait2 20` passes for `0x044` bit 0 alone of the 32
+  command flag pending, `waitirq 20` passes for `0x044` bit 0 alone of the 32
   single bits (address bit 1, transfer 2, DMA 11, status 12). It follows the
   line, not the sticky `CS_IRQ` bit 4, and a write of `0x844` does not
   release it (M2-204). With `0x044` = 0 the line is never raised (M2-142). As
   on M1, the controller's sources share line 20 (M1-F175).
-- **No NAND busy line.** No `wait2` N in 0..255 tracks a NAND erase, program
+- **No NAND busy line.** No `waitirq` N in 0..255 tracks a NAND erase, program
   or read busy period; only the always-asserted line 5 and the CPU-device lines
   8, 16 and 19 pass (M2-167).
 - **No ECC line.** After BCH8 encodes and decodes no VIC line rises beyond the
   no-candidate baseline, for every tested ECC enable candidate (`0x800`,
   `0x808`, `0x814`, `0x818`/`0x844` single bits, `0x860..0x9fc`, with `0x044`
-  = 0 or all ones), and `wait2 20` and `wait2 43` never pass after an encode
+  = 0 or all ones), and `waitirq 20` and `waitirq 43` never pass after an encode
   (M2-212, M2-217). The ECC engine's line and enable are not found.
-- **VIC1.** Condition N follows VIC line N also above 31: `wait2 32` passes
-  when VIC1 line 0 is asserted by hardware and `wait2 33` for line 1, each
+- **VIC1.** Condition N follows VIC line N also above 31: `waitirq 32` passes
+  when VIC1 line 0 is asserted by hardware and `waitirq 33` for line 1, each
   only for its own line (M2-723); line 20 + 32 = 52 never rose in any set-up
   tried (M2-724). Without a hardware line, conditions 32..63 never pass in any
-  state (620 cases) or with a VIC1 software interrupt raised. `wait2` 22, 53, 54 and 55 time out also after
+  state (620 cases) or with a VIC1 software interrupt raised. `waitirq` 22, 53, 54 and 55 time out also after
   the sequencer polled VIC1 raw status and when free-running in a 32 ms window
   (28 runs in each of four series), although the CPU sampled VIC1 raw bit 22
   set during 10 to 14 of each series (M2-211). VIC1 raw bit 22 is set at the stop after a run that executed an
@@ -320,11 +320,11 @@ establish a clock identity or make entry history the cause (M2-746, M2-747).
   run that stops without an END
   ([chapter 8, section 8.6](08-sequencer-control-registers.md#86-fmss_c10-0xc10);
   M2-182).
-- A VIC SOFTINT raise is visible in the raw VIC status but releases `wait2 N`
-  on none of 59 lines, held for 2 ms (M2-140). Inference: `wait2` samples the
+- A VIC SOFTINT raise is visible in the raw VIC status but releases `waitirq N`
+  on none of 59 lines, held for 2 ms (M2-140). Inference: `waitirq` samples the
   peripheral request lines before the VIC's software OR, not the raw status
   word. This is why sampled raw VIC snapshots (initially line 20 and 0 raised)
-  did not track `wait2` releases.
+  did not track `waitirq` releases.
 - Of the 1,024 sampled conditions in the four tested contexts (idle, command,
   DMA, ECC), 1,010 fault (M2-74). The open points are in
   [chapter 17](17-open-questions.md), item 13.
@@ -478,7 +478,7 @@ or transport failure means the instruction under test did not execute; see
   write ended 23 us early and the others within 126099..126108 us: isolated
   early ends are run-to-run spread, not an effect of a `C14` write
   (M2-689, M2-690).
-- **`nop` (`08`).** With R = 0..7 it continues; the zero form costs 1.25 cycles, the cost of a
+- **`waitc` (`08`).** With R = 0..7 it continues; the zero form costs 1.25 cycles, the cost of a
   passing `wait`, and a loop of it leaves `C14` holding start-word bits 15:8
   as a passing `wait 11` does; with R = 8..`0xff` it holds until the timeout
   fault at the time of an unmet `wait 3` (4388..4390 us with `0x07b5`), also
@@ -507,9 +507,9 @@ or transport failure means the instruction under test did not execute; see
   `CS_IRQ` = 0 and survives STOP (M2-57); the `C00` sequences that release it
   are in [chapter 8, section 8.22](08-sequencer-control-registers.md#blocked-states)
   (M2-62, M2-392).
-- **`sig` (`10`) and `nop2` (`ff`)** keep their M1 names. In idle, DMA and
+- **`sig` (`10`) and `nop` (`ff`, M1 `nop2`).** In idle, DMA and
   ECC states `sig` sets `CS_IRQ` bit 1 and continues (`CS_IRQ` = 3 at END) and
-  `nop2` continues (M2-34, M2-65). `sig` ignores R, arg and imm; writing 2 to
+  `nop` continues (M2-34, M2-65). `sig` ignores R, arg and imm; writing 2 to
   `CS_IRQ` clears the bit and the next `sig` sets it again; it raises no VIC0
   or VIC1 raw line beyond the run baseline and costs one cycle (M2-370;
   [chapter 6](06-opcode-reference.md)).

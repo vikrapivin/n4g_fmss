@@ -123,16 +123,16 @@ A state code (device, CPU reads unless noted):
 |---|---|
 | 0 | idle; at power-on; after every END, also a fault-handler END; after STOP, and after the clearing step (M2-53, M2-62, M2-384, M2-422, M2-430) |
 | 1 | running: a delay loop, a fault handler after a vectored timeout fault (`C58` = 4; `C5C` = 1) or a program running on after a `C58` = 0 fault, the value varying with 2 and 9 between identical runs (M2-384); in every run of an `ld` loop and one of three of an `sti` loop (M2-693); also the state held by `C60` = 1 ([section 8.22](#blocked-states)) |
-| 2 | running, as 1; in one of three runs of a `nop2` loop (M2-384, M2-693) |
+| 2 | running, as 1; in one of three runs of a `nop` loop (M2-384, M2-693) |
 | 3 | after abort (`C00` = 2), from a running loop or the blocked `evjmp` state (M2-62, M2-392, M2-422); a running program frozen by start-word bit 1 (M2-158) |
-| 4 | waiting: every unmet `wait`, a `wait2`, a `tmwait`, a `nop` with R ≥ 8 and a `wait` held by start word 1, read inside the state (M2-384, M2-685), or stalled on an illegal opcode; the original reset takes its abort branch for 4 |
+| 4 | waiting: every unmet `wait`, a `waitirq`, a `tmwait`, a `waitc` with R ≥ 8 and a `wait` held by start word 1, read inside the state (M2-384, M2-685), or stalled on an illegal opcode; the original reset takes its abort branch for 4 |
 | 5 | the value the program itself reads (sequencer-side read) in every tested state, also with a DMA, ECC operation or command in progress (M2-70, M2-112, M2-384) |
 | 8 | running: read in two of three runs of an `sti` loop (M2-693) |
-| 9 | running, as 1: read in one run-on and one fault-handler run and in two of three runs of a `nop2` loop, not a separate state (M2-384, M2-693) |
+| 9 | running, as 1: read in one run-on and one fault-handler run and in two of three runs of a `nop` loop, not a separate state (M2-384, M2-693) |
 | `0xa` | stopped at `pause` (`12`) (M2-14, M2-384) |
 | `0xb` | `evjmp` waiting for its event (M2-384); blocked with the timeout disabled, where it survives STOP (M2-57) |
 
-Read once 3 ms into a 400 ms loop of one instruction kind, three runs each, `C08` gives 0x9, 0x9, 0x2 for `nop2`, 0x8, 0x1, 0x8 for `sti` and 0x1, 0x1, 0x1 for `ld` (M2-693). Sampled continuously by the CPU during a run it changes within one loop: 1, 2 and 9 in ALU and `nop2` loops, also 7 in an SDRAM-access loop and 5 in a window-access loop, 4 in an unmet wait (M2-719). The running value varies between identical runs of one kind; the CPU takes one read per run at an instant whose phase within the loop it does not control, so the values cannot be assigned to an instruction or a pipeline step ([chapter 17](17-open-questions.md), item 8).
+Read once 3 ms into a 400 ms loop of one instruction kind, three runs each, `C08` gives 0x9, 0x9, 0x2 for `nop`, 0x8, 0x1, 0x8 for `sti` and 0x1, 0x1, 0x1 for `ld` (M2-693). Sampled continuously by the CPU during a run it changes within one loop: 1, 2 and 9 in ALU and `nop` loops, also 7 in an SDRAM-access loop and 5 in a window-access loop, 4 in an unmet wait (M2-719). The running value varies between identical runs of one kind; the CPU takes one read per run at an instant whose phase within the loop it does not control, so the values cannot be assigned to an instruction or a pipeline step ([chapter 17](17-open-questions.md), item 8).
 
 ## 8.5 `CS_IRQ` (`0xc0c`)
 
@@ -175,13 +175,13 @@ during a `wait` releases no event (M2-120).
 |---|---|
 | at power-on; after STOP, after the clearing step, after the ordinary reset and in the window left by a probe cleanup | `0x7f` (M2-281, M2-430) |
 | before the first `wait` of a run (also the sequencer's own read at the start) | `0x7f` (M2-177, M2-384) |
-| after a `wait` that passes before the first timeout step (DMA, encode, `wait` 0..5 and 11, `wait2 5`, an `evjmp` departure) | start-word bits 15:8: `0xff` for `0xffb5`, `0xfe` .. `0x7f` with one of bits 8..15 cleared, `0x07` for `0x07b5`, `0xef` for `0xefb5` (M2-172) |
+| after a `wait` that passes before the first timeout step (DMA, encode, `wait` 0..5 and 11, `waitirq 5`, an `evjmp` departure) | start-word bits 15:8: `0xff` for `0xffb5`, `0xfe` .. `0x7f` with one of bits 8..15 cleared, `0x07` for `0x07b5`, `0xef` for `0xefb5` (M2-172) |
 | about 1 ms after such a `wait`, through later passing waits and after the END (CPU read) | the loaded value, unchanged (`0xef` for `0xefb5`; M2-172) |
 | while a `wait` or a `tmwait` stalls | counts down by one per timeout step: `0xbd` 33 ms into a second `wait` after a fault, `0xbc` 34 ms into a second `tmwait` (start word `0xffb5`) (M2-172) |
 | at the end of a short observation of a running `tmwait` | `0x35` (M2-13) |
 | after a timeout fault, whatever the start word (ten start words, fault times following bits 15:8) | `0x7f` (M2-177) |
 | after a `wait 0` released by a CPU `70h` write after one or more timeout steps (1, 2 or 4 steps for counts 3, `0x10`, `0x40` with n = `0xb`, and count `0x10` with n = 9; 1..120 ms into it with `0xffb5`), also 1 ms later, and after a `wait 5` that passed at an erase end 2.27 ms into it | `0x7f` (M2-177) |
-| after a loop of `nop` (`08`, R = 0) with start word `0xffb5` | `0xff`, start-word bits 15:8, as after a passing `wait 11` (M2-625) |
+| after a loop of `waitc` (`08`, R = 0) with start word `0xffb5` | `0xff`, start-word bits 15:8, as after a passing `wait 11` (M2-625) |
 | after a completed `tmwait` | 0 (M2-27, M2-373, M2-584) |
 | after a CPU write of `0x55` or program writes of `0x12`, 0, `0xff`, `0x33` | unchanged (`0x7f`) (M2-176) |
 

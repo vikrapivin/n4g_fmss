@@ -199,7 +199,7 @@ without sampled execution supplies no instruction or register measurement.
 | `op15` | 24 forms time out within their observation windows; C08=4, C14=35 |
 | `op12` first case | C40/C44=12020d60/ffffffff; PC=30; C08=a; IRQ=8; worker=-2 |
 | `op12wait` first case | C40/C44=12000000/0; PC=58; C08=a; IRQ=8; worker=-2 |
-| `startseq3`, `nop` (`08`) first | following marker and END reached for zero-field encoding |
+| `startseq3`, `waitc` (`08`) first | following marker and END reached for zero-field encoding |
 | `holdout`, shifts | SHL 1 by 31 gives 80000000; SHR by 31 gives 1 |
 | `holdout`, indirect r6 | r2 and r6 both 6666aaaa |
 | `holdout`, RAM | store then unaligned reload gives 13572468 |
@@ -634,12 +634,12 @@ every requested reset verified (the eight no-reset cases of
 | `m2_r5_c48_count7` (9) | ends 493 us earlier per C48 unit with C14 = C48; C48 = 8 faults (M2-687, M2-688) |
 | `m2_r5_tmwait_repeat` (10) | 126079..126108 us; one 23-us early end, without a C14 write (M2-689, M2-690) |
 | `m2_r5_prescaler_step` (10) | reset 76/78 us, none 24/34, C00 82/82, FMCTRL1 30/32, 0x81c 28/32 (M2-691, M2-692) |
-| `m2_r5_c08_long` (9) | `nop2` 9/9/2, `ld` 1/1/1, `sti` 8/1/8 (M2-693) |
+| `m2_r5_c08_long` (9) | `nop` 9/9/2, `ld` 1/1/1, `sti` 8/1/8 (M2-693) |
 | `m2_r5_select_tag` (6) | switch at word 63/57/58 (gap 16, buffer-1 word 120 at the switch twice), 114/114/114 (gap 32) (M2-694..M2-696) |
 | `m2_r5_overlap_tags` (4) | every word an input word, initial content or zero (M2-697, M2-698) |
 | `m2_r5_dma_ctrl_sel` (5) | 038 bits 5:3 = 3/5/6 stall after 32 bytes; DMA in 0xf: word 4g + j from 4g + 5j (M2-699..M2-701) |
 | `m2_r5_out_select` (6) | only 0x100 delivers buffer 0, all others 512 zero bytes (M2-702) |
-| `m2_r5_x340_window` (9) | delay alone completes; 014 write after 0/8/16 `nop2` leaves 0/16/32 RAM words (M2-703..M2-705) |
+| `m2_r5_x340_window` (9) | delay alone completes; 014 write after 0/8/16 `nop` leaves 0/16/32 RAM words (M2-703..M2-705) |
 | `m2_r5_status_lengths` (11) | 0x41 for 160..224, 0x14 for 255..508 (M2-706, M2-707) |
 | `m2_r5_bch16_814` (4) | encode and decode identical with 0x814 = 0x2f (M2-708..M2-710) |
 | `m2_cpu_stack` (93 sequencer-harness records, 107 CPU jobs) | 211 checks: 208 match, 1 observation, 2 mismatches (both the location-order check: the engine lists the bits of one byte higher first, M2-714); controller idle after 89/89 jobs (M2-711..M2-716) |
@@ -672,7 +672,7 @@ the device image hash was not recorded.
 | `m2_r6_read_status` | bits 19:12 0xc3 → 0x41 → 0x14 → 0x3c during reads (M2-720) |
 | `m2_r6_latch` | bits 3/23 change in every order within sample resolution (M2-721) |
 | `m2_r6_dma` | exact transfers; 038 bits 12:6 live during the DMA (M2-722) |
-| `m2_r6_vic1` | `wait2` 32/33 released by hardware VIC1 lines 0/1 only; line 52 never rose (M2-723, M2-724) |
+| `m2_r6_vic1` | `waitirq` 32/33 released by hardware VIC1 lines 0/1 only; line 52 never rose (M2-723, M2-724) |
 | `m2_r6_pc` | `bnz`/`jr` exact to 2^24 + 0x100, no alias (M2-725) |
 | `m2_r6_apple` | original ERASE/WRITE erase and program blocks 3000/3001 exactly (M2-726) |
 | `m2_cpu_direct` | 1,850 jobs in 15 worker RUNs, all resets verified, 58.06 s execution; all 12 required round trips fail their erased/DMA/FIFO payload checks (M2-727, M2-728) |
@@ -761,3 +761,33 @@ recorded, so the entry-history difference does not establish causality
 The next 53-case family collects a pre-start checkpoint over USB and records
 running-code identity; native packet/cache tests and preflight pass, without
 modelling physical gate effects (M2-748).
+
+
+## 14.31 Shared-driver native comparison
+
+The resident comparison executes the same page/block API with CPU and
+M2 physical backends. BCH8 and BCH16 native tests cover four CEs, cross-writes,
+wrong-page detection and failure handling; the public reader's fallback and
+boot-page semantics are shared. Per-operation timings exclude USB and byte
+verification. These are native validation results, not device speed measurements
+(M2-749).
+
+
+## 14.32 P53 shared-driver measurements and gate checkpoint
+
+P53 completes all 2,328 shared-driver operations and 4,405 required checks, with
+zero mismatches. Independent reconstruction checks every read CRC and metadata
+value. Programmed-page reads measure 10.7939 MiB/s M2 versus 8.9343 MiB/s CPU;
+programs measure 2.8030 versus 2.5798 MiB/s (M2-750, M2-751). The first erase
+on each CE is slow regardless of the alternating backend order (M2-752).
+
+The subsequent gate campaign returns baseline and gates110..159, 51 END cases.
+Gate3 is accepted, observed RUNNING, and produces pre-start checkpoint token52.
+USB is lost during its ACK submission; pulse completion is unobserved.
+Gate109 is never submitted. The reload entry marker is present (M2-753).
+
+The CPU read optimization is separately qualified by native BCH8/BCH16 tests,
+corrected/error paths, phase accounting and actual USB packet/worker transfers.
+The baseline remains available in the same resident workload, with instrumented
+and plain read controls. This is functional validation, not a measured speedup
+(M2-754).
